@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<!-- saved from url=(0067)file:///Users/pieter-janbuysmans/Downloads/leap-bookmarklet-v2.html -->
+<html lang="nl"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<title>LEAP TV Bookmarklet</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: #000;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+  }
+  .card {
+    background: #152024;
+    border-top: 3px solid #ff5b35;
+    border-radius: 4px;
+    padding: 48px;
+    max-width: 640px;
+    width: 100%;
+  }
+  .logo { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: #ff5b35; margin-bottom: 24px; font-weight: 600; }
+  h1 { font-size: 28px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px; }
+  .subtitle { font-size: 14px; color: rgba(255,255,255,0.45); margin-bottom: 40px; line-height: 1.6; }
+  .step { display: flex; gap: 20px; margin-bottom: 28px; align-items: flex-start; }
+  .step-num { width: 32px; height: 32px; border-radius: 50%; background: #ff5b35; color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-content { flex: 1; }
+  .step-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .step-desc { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.6; }
+  .bookmarklet-btn { display: inline-block; background: #ff5b35; color: #fff; padding: 14px 28px; border-radius: 3px; font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; text-decoration: none; cursor: grab; margin-top: 8px; transition: opacity 0.2s; border: 2px dashed rgba(255,255,255,0.3); }
+  .bookmarklet-btn:hover { opacity: 0.85; }
+  .drag-hint { font-size: 11px; letter-spacing: 1px; color: rgba(255,255,255,0.3); margin-top: 10px; text-transform: uppercase; }
+  .divider { height: 1px; background: rgba(255,255,255,0.08); margin: 32px 0; }
+  .note { font-size: 12px; color: rgba(255,255,255,0.3); line-height: 1.7; }
+</style>
+<link rel="stylesheet" href="./LEAP TV Bookmarklet_files/css2"><link rel="stylesheet" href="./LEAP TV Bookmarklet_files/css2"></head>
+<body>
+<div class="card">
+  <div class="logo">LEAP Hasselt · TV Setup</div>
+  <h1>BoxTV Branding Bookmarklet</h1>
+  <p class="subtitle">Injecteer de LEAP-huisstijl bovenop de SugarWOD BoxTV pagina. Alle navigatieknoppen blijven bereikbaar.</p>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-content">
+      <div class="step-title">Sleep de knop naar je bladwijzerbalk</div>
+      <div class="step-desc">Zorg dat je bladwijzerbalk zichtbaar is (Ctrl+Shift+B). Sleep de oranje knop naar de balk.</div>
+      <br>
+      <a class="bookmarklet-btn" id="bookmarklet" href="javascript:(function()%7B%0A%20%20var%20TOP_H%20%3D%2058%3B%0A%20%20var%20BOT_H%20%3D%2042%3B%0A%0A%20%20%2F%2F%20Toggle%20off%20als%20al%20actief%0A%20%20if(document.getElementById(&#39;leap-topbar&#39;))%7B%0A%20%20%20%20document.getElementById(&#39;leap-topbar&#39;).remove()%3B%0A%20%20%20%20document.getElementById(&#39;leap-bottombar&#39;).remove()%3B%0A%20%20%20%20%2F%2F%20Reset%20SugarWOD%20layout%0A%20%20%20%20var%20sf%20%3D%20document.querySelector(&#39;.scoreboard-footer&#39;)%3B%0A%20%20%20%20var%20sh%20%3D%20document.querySelector(&#39;.scoreboard-header&#39;)%3B%0A%20%20%20%20var%20sl%20%3D%20document.querySelector(&#39;.scoreboard-left&#39;)%3B%0A%20%20%20%20var%20sr%20%3D%20document.querySelector(&#39;.scoreboard-right&#39;)%3B%0A%20%20%20%20var%20so%20%3D%20document.querySelector(&#39;.scoreboard-overlay&#39;)%3B%0A%20%20%20%20var%20sb%20%3D%20document.querySelector(&#39;.scoreboard-background&#39;)%3B%0A%20%20%20%20if(sf)%7B%20sf.style.bottom%3D&#39;&#39;%3B%20sf.style.top%3D&#39;&#39;%3B%20%7D%0A%20%20%20%20if(sh)%7B%20sh.style.top%3D&#39;&#39;%3B%20sh.style.bottom%3D&#39;&#39;%3B%20%7D%0A%20%20%20%20if(sl)%7B%20sl.style.top%3D&#39;&#39;%3B%20sl.style.bottom%3D&#39;&#39;%3B%20%7D%0A%20%20%20%20if(sr)%7B%20sr.style.top%3D&#39;&#39;%3B%20sr.style.bottom%3D&#39;&#39;%3B%20%7D%0A%20%20%20%20if(so)%7B%20so.style.bottom%3D&#39;&#39;%3B%20%7D%0A%20%20%20%20if(sb)%7B%20sb.style.top%3D&#39;&#39;%3B%20sb.style.bottom%3D&#39;&#39;%3B%20%7D%0A%20%20%20%20var%20oc%20%3D%20document.querySelector(&#39;.overlay-controls-container&#39;)%3B%0A%20%20%20%20if(oc)%7B%20oc.style.top%3D&#39;&#39;%3B%20%7D%0A%20%20%20%20document.querySelectorAll(&#39;.overlay-panel-workout-container&#39;).forEach(function(el)%7B%0A%20%20%20%20%20%20el.style.paddingTop%3D&#39;&#39;%3B%20delete%20el.dataset.leapFixed%3B%0A%20%20%20%20%7D)%3B%0A%20%20%20%20return%3B%0A%20%20%7D%0A%0A%20%20%2F%2F%20Font%0A%20%20var%20font%20%3D%20document.createElement(&#39;link&#39;)%3B%0A%20%20font.rel%3D&#39;stylesheet&#39;%3B%0A%20%20font.href%3D&#39;https%3A%2F%2Ffonts.googleapis.com%2Fcss2%3Ffamily%3DSpace%2BGrotesk%3Awght%40400%3B600%3B700%26display%3Dswap&#39;%3B%0A%20%20document.head.appendChild(font)%3B%0A%0A%20%20%2F%2F%20TOP%20BAR%0A%20%20var%20top%20%3D%20document.createElement(&#39;div&#39;)%3B%0A%20%20top.id%20%3D%20&#39;leap-topbar&#39;%3B%0A%20%20top.style.cssText%20%3D%20&#39;position%3Afixed%3Btop%3A0%3Bleft%3A0%3Bright%3A0%3Bheight%3A&#39;%2BTOP_H%2B&#39;px%3Bbackground%3A%23000%3Bborder-bottom%3A2px%20solid%20%23ff5b35%3Bz-index%3A99999%3Bdisplay%3Aflex%3Balign-items%3Acenter%3Bpadding%3A0%2024px%3Bfont-family%3ASpace%20Grotesk%2Csans-serif%3B&#39;%3B%0A%20%20top.innerHTML%20%3D%20&#39;%3Csvg%20width%3D%2230%22%20height%3D%2230%22%20viewBox%3D%220%200%2036%2038%22%20fill%3D%22none%22%20style%3D%22flex-shrink%3A0%3Bmargin-right%3A12px%22%3E%3Cpolygon%20points%3D%2218%2C1%2035%2C28%201%2C28%22%20fill%3D%22white%22%2F%3E%3Cpolygon%20points%3D%2220%2C11%2018%2C7%2016%2C11%22%20fill%3D%22%23000%22%2F%3E%3Crect%20x%3D%221%22%20y%3D%2231%22%20width%3D%2234%22%20height%3D%223%22%20fill%3D%22white%22%2F%3E%3Crect%20x%3D%221%22%20y%3D%2236%22%20width%3D%2234%22%20height%3D%222%22%20fill%3D%22white%22%2F%3E%3C%2Fsvg%3E&#39;%0A%20%20%2B%20&#39;%3Cspan%20style%3D%22font-size%3A26px%3Bfont-weight%3A700%3Bletter-spacing%3A5px%3Bcolor%3A%23fff%3Bmargin-right%3A16px%3B%22%3ELEAP%3C%2Fspan%3E&#39;%0A%20%20%2B%20&#39;%3Cspan%20style%3D%22width%3A1px%3Bheight%3A24px%3Bbackground%3Argba(255%2C255%2C255%2C0.12)%3Bmargin-right%3A16px%3Bdisplay%3Ainline-block%3Bflex-shrink%3A0%3B%22%3E%3C%2Fspan%3E&#39;%0A%20%20%2B%20&#39;%3Cspan%20style%3D%22font-size%3A9px%3Bletter-spacing%3A3px%3Btext-transform%3Auppercase%3Bcolor%3A%23d9d8d6%3B%22%3EFunctional%20Fitness%20%26middot%3B%20Hasselt%3C%2Fspan%3E&#39;%0A%20%20%2B%20&#39;%3Cspan%20style%3D%22margin-left%3Aauto%3Bfont-size%3A9px%3Bletter-spacing%3A4px%3Btext-transform%3Auppercase%3Bcolor%3Argba(255%2C255%2C255%2C0.12)%3Bmargin-right%3A24px%3Bfont-weight%3A600%3B%22%3ECOMMIT%20TO%20BE%20FIT%3C%2Fspan%3E&#39;%0A%20%20%2B%20&#39;%3Cspan%20id%3D%22leap-clock%22%20style%3D%22font-size%3A22px%3Bfont-weight%3A700%3Bletter-spacing%3A2px%3Bcolor%3A%23ff5b35%3Bfont-family%3Amonospace%3B%22%3E00%3A00%3C%2Fspan%3E&#39;%3B%0A%20%20document.body.appendChild(top)%3B%0A%0A%20%20%2F%2F%20BOTTOM%20BAR%0A%20%20var%20bot%20%3D%20document.createElement(&#39;div&#39;)%3B%0A%20%20bot.id%20%3D%20&#39;leap-bottombar&#39;%3B%0A%20%20bot.style.cssText%20%3D%20&#39;position%3Afixed%3Bbottom%3A0%3Bleft%3A0%3Bright%3A0%3Bheight%3A&#39;%2BBOT_H%2B&#39;px%3Bbackground%3A%23152024%3Bborder-top%3A1px%20solid%20rgba(255%2C91%2C53%2C0.3)%3Bz-index%3A99999%3Bdisplay%3Aflex%3Balign-items%3Acenter%3Bpadding%3A0%2024px%3Bfont-family%3ASpace%20Grotesk%2Csans-serif%3B&#39;%3B%0A%20%20var%20days%3D%5B%22ZO%22%2C%22MA%22%2C%22DI%22%2C%22WO%22%2C%22DO%22%2C%22VR%22%2C%22ZA%22%5D%3B%0A%20%20var%20months%3D%5B%22JAN%22%2C%22FEB%22%2C%22MRT%22%2C%22APR%22%2C%22MEI%22%2C%22JUN%22%2C%22JUL%22%2C%22AUG%22%2C%22SEP%22%2C%22OKT%22%2C%22NOV%22%2C%22DEC%22%5D%3B%0A%20%20var%20now%3Dnew%20Date()%3B%0A%20%20var%20dateStr%3Ddays%5Bnow.getDay()%5D%2B%22%20%22%2Bnow.getDate()%2B%22%20%22%2Bmonths%5Bnow.getMonth()%5D%2B%22%20%22%2Bnow.getFullYear()%3B%0A%20%20bot.innerHTML%20%3D%20&#39;%3Cspan%20style%3D%22font-size%3A10px%3Bletter-spacing%3A2px%3Bcolor%3A%23ff5b35%3Btext-transform%3Auppercase%3Bpadding-right%3A18px%3Bborder-right%3A1px%20solid%20rgba(255%2C255%2C255%2C0.08)%3B%22%3E&#39;%2BdateStr%2B&#39;%3C%2Fspan%3E&#39;%0A%20%20%2B%20&#39;%3Cspan%20style%3D%22font-size%3A10px%3Bletter-spacing%3A2px%3Bcolor%3Argba(255%2C255%2C255%2C0.3)%3Btext-transform%3Auppercase%3Bpadding%3A0%2018px%3Bborder-right%3A1px%20solid%20rgba(255%2C255%2C255%2C0.08)%3B%22%3EScheepvaartkaai%2016%2F1%3C%2Fspan%3E&#39;%0A%20%20%2B%20&#39;%3Cspan%20style%3D%22font-size%3A10px%3Bletter-spacing%3A2px%3Bcolor%3Argba(255%2C255%2C255%2C0.3)%3Btext-transform%3Auppercase%3Bpadding%3A0%2018px%3Bborder-right%3A1px%20solid%20rgba(255%2C255%2C255%2C0.08)%3B%22%3Eleaphasselt.be%3C%2Fspan%3E&#39;%0A%20%20%2B%20&#39;%3Cspan%20style%3D%22flex%3A1%3B%22%3E%3C%2Fspan%3E&#39;%0A%20%20%2B%20&#39;%3Cspan%20style%3D%22font-size%3A10px%3Bletter-spacing%3A2px%3Bcolor%3Argba(255%2C255%2C255%2C0.18)%3Btext-transform%3Auppercase%3Bfont-weight%3A600%3B%22%3E%40leaphasselt%3C%2Fspan%3E&#39;%3B%0A%20%20document.body.appendChild(bot)%3B%0A%0A%20%20%2F%2F%20Verberg%20SugarWOD%20logo%0A%20%20var%20swLogo%20%3D%20document.querySelector(&#39;.scoreboard-footer%20img&#39;)%3B%0A%20%20if(swLogo)%20swLogo.style.visibility%3D&#39;hidden&#39;%3B%0A%0A%20%20%2F%2F%20Pas%20SugarWOD%20layout%20aan%20zodat%20knoppen%20zichtbaar%20blijven%0A%20%20var%20sf%20%3D%20document.querySelector(&#39;.scoreboard-footer&#39;)%3B%0A%20%20var%20sh%20%3D%20document.querySelector(&#39;.scoreboard-header&#39;)%3B%0A%20%20var%20sl%20%3D%20document.querySelector(&#39;.scoreboard-left&#39;)%3B%0A%20%20var%20sr%20%3D%20document.querySelector(&#39;.scoreboard-right&#39;)%3B%0A%20%20var%20so%20%3D%20document.querySelector(&#39;.scoreboard-overlay&#39;)%3B%0A%20%20var%20sb%20%3D%20document.querySelector(&#39;.scoreboard-background&#39;)%3B%0A%0A%20%20if(sf)%7B%20sf.style.bottom%20%3D%20BOT_H%2B&#39;px&#39;%3B%20sf.style.top%20%3D%20&#39;auto&#39;%3B%20%7D%0A%20%20if(sh)%7B%20sh.style.top%20%3D%20TOP_H%2B&#39;px&#39;%3B%20%7D%0A%20%20if(sl)%7B%20sl.style.top%20%3D%20(TOP_H%20%2B%20window.innerHeight%20*%200.10)%20%2B%20&#39;px&#39;%3B%20sl.style.bottom%20%3D%20(BOT_H%20%2B%20window.innerHeight%20*%200.10)%20%2B%20&#39;px&#39;%3B%20%7D%0A%20%20if(sr)%7B%20sr.style.top%20%3D%20(TOP_H%20%2B%20window.innerHeight%20*%200.10)%20%2B%20&#39;px&#39;%3B%20sr.style.bottom%20%3D%20(BOT_H%20%2B%20window.innerHeight%20*%200.10)%20%2B%20&#39;px&#39;%3B%20%7D%0A%20%20if(so)%7B%20so.style.bottom%20%3D%20BOT_H%2B&#39;px&#39;%3B%20%7D%0A%20%20if(sb)%7B%20sb.style.top%20%3D%20TOP_H%2B&#39;px&#39;%3B%20sb.style.bottom%20%3D%20BOT_H%2B&#39;px&#39;%3B%20%7D%0A%0A%20%20%2F%2F%20Verschuif%20de%20overlay%20controls%20(rechtsboven)%20zodat%20ze%20onder%20de%20topbar%20vallen%0A%20%20var%20oc%20%3D%20document.querySelector(&#39;.overlay-controls-container&#39;)%3B%0A%20%20if(oc)%7B%20oc.style.top%20%3D%20(TOP_H%20%2B%2020)%20%2B%20&#39;px&#39;%3B%20%7D%0A%0A%20%20%2F%2F%20Zorg%20dat%20de%20workout%20inhoud%20in%20elk%20paneel%20niet%20achter%20de%20topbar%20valt%0A%20%20document.querySelectorAll(&#39;.overlay-panel-workout-container&#39;).forEach(function(el)%7B%0A%20%20%20%20el.style.paddingTop%20%3D%20TOP_H%20%2B%20&#39;px&#39;%3B%0A%20%20%7D)%3B%0A%0A%20%20%2F%2F%20Observer%20voor%20dynamisch%20toegevoegde%20panelen%20(bv.%20na%20%22Add%20Column%22)%0A%20%20var%20observer%20%3D%20new%20MutationObserver(function()%7B%0A%20%20%20%20document.querySelectorAll(&#39;.overlay-panel-workout-container&#39;).forEach(function(el)%7B%0A%20%20%20%20%20%20if(!el.dataset.leapFixed)%7B%20el.style.paddingTop%20%3D%20TOP_H%20%2B%20&#39;px&#39;%3B%20el.dataset.leapFixed%20%3D%20&#39;1&#39;%3B%20%7D%0A%20%20%20%20%7D)%3B%0A%20%20%7D)%3B%0A%20%20observer.observe(document.body%2C%20%7B%20childList%3A%20true%2C%20subtree%3A%20true%20%7D)%3B%0A%0A%20%20%2F%2F%20Clock%0A%20%20function%20tick()%7B%0A%20%20%20%20var%20n%3Dnew%20Date()%3B%0A%20%20%20%20var%20cl%3Ddocument.getElementById(&#39;leap-clock&#39;)%3B%0A%20%20%20%20if(cl)%20cl.textContent%3DString(n.getHours()).padStart(2%2C&#39;0&#39;)%2B&#39;%3A&#39;%2BString(n.getMinutes()).padStart(2%2C&#39;0&#39;)%3B%0A%20%20%7D%0A%20%20tick()%3B%0A%20%20setInterval(tick%2C15000)%3B%0A%7D)()%3B">⬆ LEAP TV</a>
+      <div class="drag-hint">← Sleep dit naar je bladwijzerbalk</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-content">
+      <div class="step-title">Open de SugarWOD BoxTV URL</div>
+      <div class="step-desc">Navigeer naar je normale app.sugarwod.com/public/tv?id=... link.</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-content">
+      <div class="step-title">Klik op "LEAP TV" in je bladwijzerbalk</div>
+      <div class="step-desc">De LEAP branding verschijnt. Alle SugarWOD knoppen blijven zichtbaar en klikbaar. Nogmaals klikken verwijdert de overlay.</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="note">De bookmarklet past de layout van SugarWOD aan zodat de navigatieknoppen nooit achter de LEAP-balken verdwijnen.</div>
+</div>
+
+<script>
+const code = `(function(){
+  var TOP_H = 58;
+  var BOT_H = 42;
+
+  // Toggle off als al actief
+  if(document.getElementById('leap-topbar')){
+    document.getElementById('leap-topbar').remove();
+    document.getElementById('leap-bottombar').remove();
+    // Reset SugarWOD layout
+    var sf = document.querySelector('.scoreboard-footer');
+    var sh = document.querySelector('.scoreboard-header');
+    var sl = document.querySelector('.scoreboard-left');
+    var sr = document.querySelector('.scoreboard-right');
+    var so = document.querySelector('.scoreboard-overlay');
+    var sb = document.querySelector('.scoreboard-background');
+    if(sf){ sf.style.bottom=''; sf.style.top=''; }
+    if(sh){ sh.style.top=''; sh.style.bottom=''; }
+    if(sl){ sl.style.top=''; sl.style.bottom=''; }
+    if(sr){ sr.style.top=''; sr.style.bottom=''; }
+    if(so){ so.style.bottom=''; }
+    if(sb){ sb.style.top=''; sb.style.bottom=''; }
+    var oc = document.querySelector('.overlay-controls-container');
+    if(oc){ oc.style.top=''; }
+    document.querySelectorAll('.overlay-panel-workout-container').forEach(function(el){
+      el.style.paddingTop=''; delete el.dataset.leapFixed;
+    });
+    return;
+  }
+
+  // Font
+  var font = document.createElement('link');
+  font.rel='stylesheet';
+  font.href='https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap';
+  document.head.appendChild(font);
+
+  // TOP BAR
+  var top = document.createElement('div');
+  top.id = 'leap-topbar';
+  top.style.cssText = 'position:fixed;top:0;left:0;right:0;height:'+TOP_H+'px;background:#000;border-bottom:2px solid #ff5b35;z-index:99999;display:flex;align-items:center;padding:0 24px;font-family:Space Grotesk,sans-serif;';
+  top.innerHTML = '<svg width="30" height="30" viewBox="0 0 36 38" fill="none" style="flex-shrink:0;margin-right:12px"><polygon points="18,1 35,28 1,28" fill="white"/><polygon points="20,11 18,7 16,11" fill="#000"/><rect x="1" y="31" width="34" height="3" fill="white"/><rect x="1" y="36" width="34" height="2" fill="white"/></svg>'
+  + '<span style="font-size:26px;font-weight:700;letter-spacing:5px;color:#fff;margin-right:16px;">LEAP</span>'
+  + '<span style="width:1px;height:24px;background:rgba(255,255,255,0.12);margin-right:16px;display:inline-block;flex-shrink:0;"></span>'
+  + '<span style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#d9d8d6;">Functional Fitness &middot; Hasselt</span>'
+  + '<span style="margin-left:auto;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,0.12);margin-right:24px;font-weight:600;">COMMIT TO BE FIT</span>'
+  + '<span id="leap-clock" style="font-size:22px;font-weight:700;letter-spacing:2px;color:#ff5b35;font-family:monospace;">00:00</span>';
+  document.body.appendChild(top);
+
+  // BOTTOM BAR
+  var bot = document.createElement('div');
+  bot.id = 'leap-bottombar';
+  bot.style.cssText = 'position:fixed;bottom:0;left:0;right:0;height:'+BOT_H+'px;background:#152024;border-top:1px solid rgba(255,91,53,0.3);z-index:99999;display:flex;align-items:center;padding:0 24px;font-family:Space Grotesk,sans-serif;';
+  var days=["ZO","MA","DI","WO","DO","VR","ZA"];
+  var months=["JAN","FEB","MRT","APR","MEI","JUN","JUL","AUG","SEP","OKT","NOV","DEC"];
+  var now=new Date();
+  var dateStr=days[now.getDay()]+" "+now.getDate()+" "+months[now.getMonth()]+" "+now.getFullYear();
+  bot.innerHTML = '<span style="font-size:10px;letter-spacing:2px;color:#ff5b35;text-transform:uppercase;padding-right:18px;border-right:1px solid rgba(255,255,255,0.08);">'+dateStr+'</span>'
+  + '<span style="font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.3);text-transform:uppercase;padding:0 18px;border-right:1px solid rgba(255,255,255,0.08);">Scheepvaartkaai 16/1</span>'
+  + '<span style="font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.3);text-transform:uppercase;padding:0 18px;border-right:1px solid rgba(255,255,255,0.08);">leaphasselt.be</span>'
+  + '<span style="flex:1;"></span>'
+  + '<span style="font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.18);text-transform:uppercase;font-weight:600;">@leaphasselt</span>';
+  document.body.appendChild(bot);
+
+  // Verberg SugarWOD logo
+  var swLogo = document.querySelector('.scoreboard-footer img');
+  if(swLogo) swLogo.style.visibility='hidden';
+
+  // Pas SugarWOD layout aan zodat knoppen zichtbaar blijven
+  var sf = document.querySelector('.scoreboard-footer');
+  var sh = document.querySelector('.scoreboard-header');
+  var sl = document.querySelector('.scoreboard-left');
+  var sr = document.querySelector('.scoreboard-right');
+  var so = document.querySelector('.scoreboard-overlay');
+  var sb = document.querySelector('.scoreboard-background');
+
+  if(sf){ sf.style.bottom = BOT_H+'px'; sf.style.top = 'auto'; }
+  if(sh){ sh.style.top = TOP_H+'px'; }
+  if(sl){ sl.style.top = (TOP_H + window.innerHeight * 0.10) + 'px'; sl.style.bottom = (BOT_H + window.innerHeight * 0.10) + 'px'; }
+  if(sr){ sr.style.top = (TOP_H + window.innerHeight * 0.10) + 'px'; sr.style.bottom = (BOT_H + window.innerHeight * 0.10) + 'px'; }
+  if(so){ so.style.bottom = BOT_H+'px'; }
+  if(sb){ sb.style.top = TOP_H+'px'; sb.style.bottom = BOT_H+'px'; }
+
+  // Verschuif de overlay controls (rechtsboven) zodat ze onder de topbar vallen
+  var oc = document.querySelector('.overlay-controls-container');
+  if(oc){ oc.style.top = (TOP_H + 20) + 'px'; }
+
+  // Zorg dat de workout inhoud in elk paneel niet achter de topbar valt
+  document.querySelectorAll('.overlay-panel-workout-container').forEach(function(el){
+    el.style.paddingTop = TOP_H + 'px';
+  });
+
+  // Observer voor dynamisch toegevoegde panelen (bv. na "Add Column")
+  var observer = new MutationObserver(function(){
+    document.querySelectorAll('.overlay-panel-workout-container').forEach(function(el){
+      if(!el.dataset.leapFixed){ el.style.paddingTop = TOP_H + 'px'; el.dataset.leapFixed = '1'; }
+    });
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  // Clock
+  function tick(){
+    var n=new Date();
+    var cl=document.getElementById('leap-clock');
+    if(cl) cl.textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+  }
+  tick();
+  setInterval(tick,15000);
+})();`;
+
+document.getElementById('bookmarklet').href = 'javascript:' + encodeURIComponent(code);
+</script>
+
+
+<div id="leap-topbar" style="position: fixed; top: 0px; left: 0px; right: 0px; height: 58px; background: rgb(0, 0, 0); border-bottom: 2px solid rgb(255, 91, 53); z-index: 99999; display: flex; align-items: center; padding: 0px 24px; font-family: &quot;Space Grotesk&quot;, sans-serif;"><svg width="30" height="30" viewBox="0 0 36 38" fill="none" style="flex-shrink:0;margin-right:12px"><polygon points="18,1 35,28 1,28" fill="white"></polygon><polygon points="20,11 18,7 16,11" fill="#000"></polygon><rect x="1" y="31" width="34" height="3" fill="white"></rect><rect x="1" y="36" width="34" height="2" fill="white"></rect></svg><span style="font-size:26px;font-weight:700;letter-spacing:5px;color:#fff;margin-right:16px;">LEAP</span><span style="width:1px;height:24px;background:rgba(255,255,255,0.12);margin-right:16px;display:inline-block;flex-shrink:0;"></span><span style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#d9d8d6;">Functional Fitness · Hasselt</span><span style="margin-left:auto;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,0.12);margin-right:24px;font-weight:600;">COMMIT TO BE FIT</span><span id="leap-clock" style="font-size:22px;font-weight:700;letter-spacing:2px;color:#ff5b35;font-family:monospace;">19:45</span></div><div id="leap-bottombar" style="position: fixed; bottom: 0px; left: 0px; right: 0px; height: 42px; background: rgb(21, 32, 36); border-top: 1px solid rgba(255, 91, 53, 0.3); z-index: 99999; display: flex; align-items: center; padding: 0px 24px; font-family: &quot;Space Grotesk&quot;, sans-serif;"><span style="font-size:10px;letter-spacing:2px;color:#ff5b35;text-transform:uppercase;padding-right:18px;border-right:1px solid rgba(255,255,255,0.08);">VR 27 FEB 2026</span><span style="font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.3);text-transform:uppercase;padding:0 18px;border-right:1px solid rgba(255,255,255,0.08);">Scheepvaartkaai 16/1</span><span style="font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.3);text-transform:uppercase;padding:0 18px;border-right:1px solid rgba(255,255,255,0.08);">leaphasselt.be</span><span style="flex:1;"></span><span style="font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.18);text-transform:uppercase;font-weight:600;">@leaphasselt</span></div></body></html>
