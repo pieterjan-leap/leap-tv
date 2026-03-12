@@ -919,8 +919,11 @@ function renderPreview(zaalNum) {
 
   updateClock();
 
-  // Broadcast state naar display tabs
-  bc.postMessage({ type: 'stateUpdate', zaal: zaalNum, state: state[zaalNum], globalAlign, announcements: sharedAnnouncements });
+  // Broadcast state naar display tabs — alleen als er blokken actief zijn
+  // (voorkomt dat display tab leeggemaakt wordt bij herlaad van workouts)
+  if (state[zaalNum].activeBloks.length > 0) {
+    bc.postMessage({ type: 'stateUpdate', zaal: zaalNum, state: state[zaalNum], globalAlign, announcements: sharedAnnouncements });
+  }
 }
 
 // ═══════════════════════════════════════════════
@@ -1004,6 +1007,40 @@ function renderDisplayFull() {
     ${contentHtml}
     <div class="tv-bottombar" style="height:44px;">${buildTicker(accent)}</div>
   `;
+
+  // Auto-fill: zoom elke blok omhoog zodat content de beschikbare hoogte vult
+  if (activeWorkouts.length > 1) {
+    setTimeout(() => autoFillBlokken('displayInner', activeWorkouts.length), 150);
+  }
+}
+
+function autoFillBlokken(containerId, n) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const blokken = container.querySelectorAll('.tv-blok');
+  const cols = n === 2 ? 2 : n === 4 ? 2 : 3;
+  const baseFs = cols === 2 ? 22 : 16;
+  const baseTs = cols === 2 ? 30 : 22;
+
+  blokken.forEach(blok => {
+    const title = blok.querySelector('.tv-blok-title');
+    const body = blok.querySelector('.tv-blok-body');
+    if (!title || !body) return;
+    const available = blok.clientHeight - 24;
+    if (available <= 0) return;
+    let lo = 10, hi = 500, best = 100;
+    for (let i = 0; i < 14; i++) {
+      const mid = Math.round((lo + hi) / 2);
+      const scale = mid / 100;
+      title.style.fontSize = Math.round(baseTs * scale) + 'px';
+      body.style.fontSize = Math.round(baseFs * scale) + 'px';
+      const contentH = title.scrollHeight + body.scrollHeight;
+      if (contentH <= available) { best = mid; lo = mid + 1; }
+      else { hi = mid - 1; }
+    }
+    title.style.fontSize = Math.round(baseTs * best / 100) + 'px';
+    body.style.fontSize = Math.round(baseFs * best / 100) + 'px';
+  });
 }
 
 // ═══════════════════════════════════════════════
