@@ -944,13 +944,8 @@ setInterval(() => {
 let displayZaal = 1;
 
 function openDisplay() {
-  displayZaal = document.getElementById('tab-z1').classList.contains('active') ? 1 : 2;
-  renderDisplayFull();
-  document.getElementById('page-display').classList.add('active');
-}
-
-function closeDisplay() {
-  document.getElementById('page-display').classList.remove('active');
+  const zaal = document.getElementById('tab-z1').classList.contains('active') ? 1 : 2;
+  window.open(`?display=${zaal}`, '_blank');
 }
 
 function renderDisplayFull() {
@@ -1026,6 +1021,46 @@ function switchZaal(num) {
 // INIT
 // ═══════════════════════════════════════════════
 function init() {
+  // Display-modus: aparte tab geopend via ?display=1 of ?display=2
+  const urlParams = new URLSearchParams(window.location.search);
+  const displayParam = urlParams.get('display');
+  if (displayParam === '1' || displayParam === '2') {
+    const zaal = parseInt(displayParam);
+    // Verberg controller, toon display fullscreen
+    document.querySelector('nav').style.display = 'none';
+    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+    const dp = document.getElementById('page-display');
+    dp.style.display = 'flex';
+    dp.classList.add('active');
+    document.getElementById('page-display').querySelector('.display-topbar-btn').style.display = 'none';
+
+    // Luister op BroadcastChannel voor updates van controller
+    bc.onmessage = (e) => {
+      if (e.data.zaal === zaal && e.data.html) {
+        document.getElementById('displayInner').innerHTML = e.data.html;
+      }
+    };
+
+    // Vraag controller om huidige state te broadcasten
+    bc.postMessage({ requestState: true, zaal });
+
+    // Toon wachtscherm totdat controller iets stuurt
+    document.getElementById('displayInner').innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;opacity:0.4;">
+        <div style="font-family:var(--mono);font-size:11px;letter-spacing:3px;color:var(--orange);">ZAAL ${zaal} — WACHT OP CONTROLLER...</div>
+      </div>`;
+    return; // Geen normale init
+  }
+
+  // Luister ook of een display-tab om state vraagt
+  bc.onmessage = (e) => {
+    if (e.data.requestState) {
+      const z = e.data.zaal;
+      const frame = document.getElementById(`tvFrame${z}`);
+      if (frame) bc.postMessage({ zaal: z, html: frame.innerHTML });
+    }
+  };
+
   initDates();
   initAlign();
   renderAnnounceLists();
