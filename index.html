@@ -919,12 +919,32 @@ function renderPreview(zaalNum) {
 
   updateClock();
 
-  // Broadcast naar display tabs — stuur HTML van frame (exact wat preview toont)
-  // Alleen als er blokken actief zijn (voorkomt leeg scherm bij herlaad)
+  // Broadcast naar display tabs
   if (state[zaalNum].activeBloks.length > 0) {
-    const frame = document.getElementById(`tvFrame${zaalNum}`);
-    if (frame) bc.postMessage({ type: 'frameUpdate', zaal: zaalNum, html: frame.innerHTML, frameW: frame.offsetWidth, frameH: frame.offsetHeight });
+    broadcastFrame(zaalNum);
   }
+
+  // Scroll listeners op preview blokken
+  const frame = document.getElementById('tvFrame' + zaalNum);
+  if (frame) {
+    frame.querySelectorAll('.tv-blok').forEach(blok => {
+      blok.addEventListener('scroll', () => broadcastScroll(zaalNum), { passive: true });
+    });
+  }
+}
+
+function broadcastFrame(zaalNum) {
+  const frame = document.getElementById('tvFrame' + zaalNum);
+  if (!frame) return;
+  const scrollPositions = [...frame.querySelectorAll('.tv-blok')].map(b => b.scrollTop);
+  bc.postMessage({ type: 'frameUpdate', zaal: zaalNum, html: frame.innerHTML, frameW: frame.offsetWidth, frameH: frame.offsetHeight, scrollPositions });
+}
+
+function broadcastScroll(zaalNum) {
+  const frame = document.getElementById('tvFrame' + zaalNum);
+  if (!frame) return;
+  const scrollPositions = [...frame.querySelectorAll('.tv-blok')].map(b => b.scrollTop);
+  bc.postMessage({ type: 'scrollUpdate', zaal: zaalNum, scrollPositions });
 }
 
 // ═══════════════════════════════════════════════
@@ -949,10 +969,7 @@ let displayZaal = 1;
 function openDisplay() {
   const zaal = document.getElementById('tab-z1').classList.contains('active') ? 1 : 2;
   // Stuur frame elke 500ms voor de eerste 3s zodat display tab het zeker ontvangt
-  const sendFrame = () => {
-    const frame = document.getElementById('tvFrame' + zaal);
-    if (frame) bc.postMessage({ type: 'frameUpdate', zaal, html: frame.innerHTML, frameW: frame.offsetWidth, frameH: frame.offsetHeight });
-  };
+  const sendFrame = () => broadcastFrame(zaal);
   sendFrame();
   const retryId = setInterval(sendFrame, 500);
   setTimeout(() => clearInterval(retryId), 3000);
@@ -1079,17 +1096,19 @@ function init() {
     dp.classList.add('active');
     document.getElementById('page-display').querySelector('.display-topbar-btn').style.display = 'none';
 
-    // Luister op BroadcastChannel voor frame updates van controller
+    // Luister op BroadcastChannel voor frame/scroll updates van controller
     bc.onmessage = (e) => {
-      if (e.data.type === 'frameUpdate' && e.data.zaal === zaal) {
-        applyFrameToDisplay(e.data.html, e.data.frameW, e.data.frameH);
+      if (e.data.zaal !== zaal) return;
+      if (e.data.type === 'frameUpdate') {
+        applyFrameToDisplay(e.data.html, e.data.frameW, e.data.frameH, e.data.scrollPositions);
+      } else if (e.data.type === 'scrollUpdate') {
+        const blokken = document.querySelectorAll('#scaleWrap .tv-blok');
+        e.data.scrollPositions.forEach((pos, i) => { if (blokken[i]) blokken[i].scrollTop = pos; });
       }
     };
 
-    function applyFrameToDisplay(html, srcW, srcH) {
+    function applyFrameToDisplay(html, srcW, srcH, scrollPositions) {
       const di = document.getElementById('displayInner');
-      // Maak een wrapper van exact dezelfde grootte als het preview frame
-      // en schaal die op naar het volledige scherm
       const scaleX = window.innerWidth / srcW;
       const scaleY = window.innerHeight / srcH;
       const scale = Math.min(scaleX, scaleY);
@@ -1099,6 +1118,11 @@ function init() {
         transform: scale(${scale});
         position:absolute; top:0; left:0;
       ">${html}</div>`;
+      // Herstel scroll posities
+      if (scrollPositions) {
+        const blokken = di.querySelectorAll('.tv-blok');
+        scrollPositions.forEach((pos, i) => { if (blokken[i]) blokken[i].scrollTop = pos; });
+      }
     }
 
     // Vraag controller om huidige state te broadcasten
@@ -1124,7 +1148,7 @@ function init() {
     if (e.data.type === 'requestState') {
       const z = e.data.zaal;
       const frame = document.getElementById('tvFrame' + z);
-      if (frame) bc.postMessage({ type: 'frameUpdate', zaal: z, html: frame.innerHTML, frameW: frame.offsetWidth, frameH: frame.offsetHeight });
+      if (frame) broadcastFrame(z);
     }
   };
 
