@@ -231,25 +231,34 @@ body { background:#0a1214; color:var(--white); font-family:var(--mono); min-heig
   margin-left:auto; font-family:var(--mono); font-size:14px; font-weight:700;
   letter-spacing:2px; flex-shrink:0;
 }
-.tv-content { flex:1; overflow:hidden; min-height:0; min-width:0; }
-.tv-blok {
-  display:flex; flex-direction:column; padding:10px 14px;
-  overflow:hidden; min-height:0; min-width:0;
+.tv-content {
+  /* neemt alle resterende hoogte, nooit groter dan de frame */
+  flex:1; min-height:0; overflow:hidden;
+  display:flex; /* default; grid wordt inline gezet voor 4 blokken */
 }
-.tv-blok.scrollable {
-  overflow-y:auto !important;
+.tv-blok {
+  /* elke blok vult zijn cel, scrollt intern, groeit nooit buiten cel */
+  flex:1; min-height:0; min-width:0;
+  display:flex; flex-direction:column;
+  padding:10px 14px;
+  overflow-y:auto; overflow-x:hidden;
   scrollbar-width:thin; scrollbar-color:rgba(255,91,53,0.25) transparent;
 }
 .tv-blok + .tv-blok { border-left:1px solid rgba(255,255,255,0.04); }
+/* Centrum-wrapper voor 1 blok: min-height:100% + justify-content:center
+   centreert wanneer content past; de parent scrollt als het overloopt */
+.tv-blok-center {
+  min-height:100%; width:100%;
+  display:flex; flex-direction:column; justify-content:center;
+}
 .tv-blok-title {
-  font-family:var(--disp); font-weight:900; font-size:clamp(12px,2.2vw,20px);
+  font-family:var(--disp); font-weight:900;
   letter-spacing:1px; line-height:1; padding-bottom:6px;
-  border-bottom:1px solid rgba(255,91,53,0.2); flex-shrink:0;
-  position:sticky; top:0; background:#0e181b; z-index:1; margin-bottom:6px;
+  border-bottom:1px solid rgba(255,91,53,0.2); flex-shrink:0; margin-bottom:6px;
 }
 .tv-blok-body {
   font-family:var(--disp); font-weight:400;
-  font-size:clamp(10px,1.6vw,16px); line-height:1.5; color:var(--white);
+  line-height:1.5; color:var(--white);
 }
 .tv-blok-body strong { font-weight:700; }
 
@@ -720,9 +729,11 @@ function fitBlok(zaalNum, id) {
     const frame = document.getElementById(`tvFrame${zaalNum}`);
     if (!frame) return true;
     if (isSingle) {
-      const wrapper = frame.querySelector('.tv-blok');
-      if (!wrapper) return true;
-      return wrapper.scrollHeight <= wrapper.clientHeight + 2;
+      const blok = frame.querySelector('.tv-blok');
+      if (!blok) return true;
+      // Meet de inner content (tv-blok-center) vs de blok hoogte
+      const inner = blok.querySelector('.tv-blok-center') || blok;
+      return inner.scrollHeight <= blok.clientHeight + 2;
     } else {
       const idx = activeBloks.indexOf(id);
       const blokEls = frame.querySelectorAll('.tv-blok');
@@ -861,11 +872,13 @@ function renderPreview(zaalNum) {
     const fs = Math.round(zoom / 100 * 15);
     const ts = Math.round(zoom / 100 * 20);
     const body = w.attributes.description?.replace(/\n/g,'<br>') || '';
-    contentHtml = `
-      <div class="tv-content" style="display:flex;">
-        <div class="tv-blok" style="align-items:${globalAlign==='center'?'center':'flex-start'};">
-          <div class="tv-blok-title" style="color:${accent};font-size:${ts}px;text-align:${globalAlign};width:100%;">${w.attributes.title}</div>
-          <div class="tv-blok-body" style="font-size:${fs}px;text-align:${globalAlign};">${body}</div>
+    // tv-blok-center centreert verticaal als inhoud past; scrollt als het niet past
+    contentHtml = `<div class="tv-content">
+        <div class="tv-blok">
+          <div class="tv-blok-center" style="text-align:${globalAlign};">
+            <div class="tv-blok-title" style="color:${accent};font-size:${ts}px;">${w.attributes.title}</div>
+            <div class="tv-blok-body" style="font-size:${fs}px;">${body}</div>
+          </div>
         </div>
       </div>`;
   } else {
@@ -873,19 +886,21 @@ function renderPreview(zaalNum) {
     const cols = n === 2 ? 2 : n === 4 ? 2 : 3;
     const baseFs = cols === 2 ? 13 : 11;
     const baseTs = cols === 2 ? 16 : 13;
-    const gridStyle = n === 4 ? 'display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);overflow:hidden;width:100%;height:100%;' : `display:grid;grid-template-columns:repeat(${cols},1fr);overflow:hidden;width:100%;height:100%;`;
+    // 4 blokken = 2×2 grid; rest = flex (elke blok krijgt flex:1 via CSS)
+    const contentStyle = n === 4
+      ? 'display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:100%;'
+      : 'display:flex;';
     const bloksHtml = activeWorkouts.map(w => {
       const zoom = s.blokZoom[w.id] || 100;
       const fs = Math.round(zoom / 100 * baseFs);
       const ts = Math.round(zoom / 100 * baseTs);
       const body = w.attributes.description?.replace(/\n/g,'<br>') || '';
-      return `
-        <div class="tv-blok" style="align-items:${globalAlign==='center'?'center':'flex-start'};overflow:hidden;">
-          <div style="color:${accent};font-family:var(--disp);font-weight:900;font-size:${ts}px;text-align:${globalAlign};width:100%;padding-bottom:6px;border-bottom:1px solid rgba(255,91,53,0.2);flex-shrink:0;margin-bottom:6px;">${w.attributes.title}</div>
-          <div class="tv-blok-body" style="font-size:${fs}px;text-align:${globalAlign};overflow:hidden;">${body}</div>
+      return `<div class="tv-blok" style="text-align:${globalAlign};">
+          <div class="tv-blok-title" style="color:${accent};font-size:${ts}px;">${w.attributes.title}</div>
+          <div class="tv-blok-body" style="font-size:${fs}px;">${body}</div>
         </div>`;
     }).join('');
-    contentHtml = `<div class="tv-content" style="${gridStyle}">${bloksHtml}</div>`;
+    contentHtml = `<div class="tv-content" style="${contentStyle}">${bloksHtml}</div>`;
   }
 
   frame.innerHTML = `
@@ -955,17 +970,20 @@ function renderDisplayFull() {
     const fs = Math.round(zoom / 100 * 26);
     const ts = Math.round(zoom / 100 * 38);
     const body = w.attributes.description?.replace(/\n/g,'<br>') || '';
-    contentHtml = `
-      <div class="tv-content">
-        <div class="tv-blok" style="padding:28px 40px;align-items:${globalAlign==='center'?'center':'flex-start'};">
-          <div class="tv-blok-title" style="color:${accent};font-size:${ts}px;text-align:${globalAlign};width:100%;margin-bottom:16px;padding-bottom:12px;border-bottom-color:${accent}40;">${w.attributes.title}</div>
-          <div class="tv-blok-body" style="font-size:${fs}px;text-align:${globalAlign};">${body}</div>
+    contentHtml = `<div class="tv-content">
+        <div class="tv-blok" style="padding:28px 40px;">
+          <div class="tv-blok-center" style="text-align:${globalAlign};">
+            <div class="tv-blok-title" style="color:${accent};font-size:${ts}px;padding-bottom:12px;margin-bottom:16px;border-bottom-color:${accent}40;">${w.attributes.title}</div>
+            <div class="tv-blok-body" style="font-size:${fs}px;">${body}</div>
+          </div>
         </div>
       </div>`;
   } else {
     const n = activeWorkouts.length;
     const cols = n === 2 ? 2 : n === 4 ? 2 : 3;
-    const gridStyle = n === 4 ? 'display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);overflow:hidden;width:100%;height:100%;' : `display:grid;grid-template-columns:repeat(${cols},1fr);overflow:hidden;width:100%;height:100%;`;
+    const contentStyle = n === 4
+      ? 'display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:100%;'
+      : 'display:flex;';
     const baseFs = cols === 2 ? 22 : 16;
     const baseTs = cols === 2 ? 30 : 22;
     const bloksHtml = activeWorkouts.map(w => {
@@ -973,13 +991,12 @@ function renderDisplayFull() {
       const fs = Math.round(zoom / 100 * baseFs);
       const ts = Math.round(zoom / 100 * baseTs);
       const body = w.attributes.description?.replace(/\n/g,'<br>') || '';
-      return `
-        <div class="tv-blok" style="padding:20px 28px;align-items:${globalAlign==='center'?'center':'flex-start'};">
-          <div class="tv-blok-title" style="color:${accent};font-size:${ts}px;text-align:${globalAlign};width:100%;margin-bottom:10px;">${w.attributes.title}</div>
-          <div class="tv-blok-body" style="font-size:${fs}px;text-align:${globalAlign};">${body}</div>
+      return `<div class="tv-blok" style="padding:20px 28px;text-align:${globalAlign};">
+          <div class="tv-blok-title" style="color:${accent};font-size:${ts}px;">${w.attributes.title}</div>
+          <div class="tv-blok-body" style="font-size:${fs}px;">${body}</div>
         </div>`;
     }).join('');
-    contentHtml = `<div class="tv-content" style="${gridStyle}">${bloksHtml}</div>`;
+    contentHtml = `<div class="tv-content" style="${contentStyle}">${bloksHtml}</div>`;
   }
 
   document.getElementById('displayInner').innerHTML = `
