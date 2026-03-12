@@ -299,7 +299,7 @@ body { background:#0a1214; color:var(--white); font-family:var(--mono); min-heig
   height:100vh; width:100vw;
 }
 #page-display.active { display:flex; }
-#displayInner { flex:1; min-height:0; display:flex; flex-direction:column; }
+#displayInner { flex:1; min-height:0; position:relative; overflow:hidden; }
 .display-topbar-btn {
   position:fixed; bottom:16px; left:50%; transform:translateX(-50%);
   z-index:201; background:rgba(21,32,36,0.9);
@@ -919,10 +919,11 @@ function renderPreview(zaalNum) {
 
   updateClock();
 
-  // Broadcast state naar display tabs — alleen als er blokken actief zijn
-  // (voorkomt dat display tab leeggemaakt wordt bij herlaad van workouts)
+  // Broadcast naar display tabs — stuur HTML van frame (exact wat preview toont)
+  // Alleen als er blokken actief zijn (voorkomt leeg scherm bij herlaad)
   if (state[zaalNum].activeBloks.length > 0) {
-    bc.postMessage({ type: 'stateUpdate', zaal: zaalNum, state: state[zaalNum], globalAlign, announcements: sharedAnnouncements });
+    const frame = document.getElementById(`tvFrame${zaalNum}`);
+    if (frame) bc.postMessage({ type: 'frameUpdate', zaal: zaalNum, html: frame.innerHTML, frameW: frame.offsetWidth, frameH: frame.offsetHeight });
   }
 }
 
@@ -1070,17 +1071,27 @@ function init() {
     dp.classList.add('active');
     document.getElementById('page-display').querySelector('.display-topbar-btn').style.display = 'none';
 
-    // Luister op BroadcastChannel voor state updates van controller
+    // Luister op BroadcastChannel voor frame updates van controller
     bc.onmessage = (e) => {
-      if (e.data.type === 'stateUpdate' && e.data.zaal === zaal) {
-        // Zet ontvangen state in lokale variabelen
-        state[zaal] = e.data.state;
-        globalAlign = e.data.globalAlign;
-        sharedAnnouncements = e.data.announcements || [];
-        displayZaal = zaal;
-        renderDisplayFull();
+      if (e.data.type === 'frameUpdate' && e.data.zaal === zaal) {
+        applyFrameToDisplay(e.data.html, e.data.frameW, e.data.frameH);
       }
     };
+
+    function applyFrameToDisplay(html, srcW, srcH) {
+      const di = document.getElementById('displayInner');
+      // Maak een wrapper van exact dezelfde grootte als het preview frame
+      // en schaal die op naar het volledige scherm
+      const scaleX = window.innerWidth / srcW;
+      const scaleY = window.innerHeight / srcH;
+      const scale = Math.min(scaleX, scaleY);
+      di.innerHTML = `<div id="scaleWrap" style="
+        width:${srcW}px; height:${srcH}px;
+        transform-origin: top left;
+        transform: scale(${scale});
+        position:absolute; top:0; left:0;
+      ">${html}</div>`;
+    }
 
     // Vraag controller om huidige state te broadcasten
     bc.postMessage({ type: 'requestState', zaal });
@@ -1104,7 +1115,10 @@ function init() {
   bc.onmessage = (e) => {
     if (e.data.type === 'requestState') {
       const z = e.data.zaal;
-      bc.postMessage({ type: 'stateUpdate', zaal: z, state: state[z], globalAlign, announcements: sharedAnnouncements });
+      const frame = document.getElementById(`tvFrame${z}`);
+      if (frame && state[z].activeBloks.length > 0) {
+        bc.postMessage({ type: 'frameUpdate', zaal: z, html: frame.innerHTML, frameW: frame.offsetWidth, frameH: frame.offsetHeight });
+      }
     }
   };
 
