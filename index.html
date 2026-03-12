@@ -237,7 +237,7 @@ body { background:#0a1214; color:var(--white); font-family:var(--mono); min-heig
   overflow:hidden; min-height:0; min-width:0;
 }
 .tv-blok.scrollable {
-  overflow-y:auto;
+  overflow-y:auto !important;
   scrollbar-width:thin; scrollbar-color:rgba(255,91,53,0.25) transparent;
 }
 .tv-blok + .tv-blok { border-left:1px solid rgba(255,255,255,0.04); }
@@ -863,7 +863,7 @@ function renderPreview(zaalNum) {
     const body = w.attributes.description?.replace(/\n/g,'<br>') || '';
     contentHtml = `
       <div class="tv-content" style="display:flex;">
-        <div class="tv-blok scrollable" style="align-items:${globalAlign==='center'?'center':'flex-start'};">
+        <div class="tv-blok" style="align-items:${globalAlign==='center'?'center':'flex-start'};">
           <div class="tv-blok-title" style="color:${accent};font-size:${ts}px;text-align:${globalAlign};width:100%;">${w.attributes.title}</div>
           <div class="tv-blok-body" style="font-size:${fs}px;text-align:${globalAlign};">${body}</div>
         </div>
