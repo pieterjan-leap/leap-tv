@@ -231,7 +231,7 @@ body { background:#0a1214; color:var(--white); font-family:var(--mono); min-heig
   margin-left:auto; font-family:var(--mono); font-size:14px; font-weight:700;
   letter-spacing:2px; flex-shrink:0;
 }
-.tv-content { flex:1; display:flex; overflow:hidden; min-height:0; }
+.tv-content { flex:1; display:flex; overflow:hidden; min-height:0; max-height:100%; }
 .tv-blok {
   flex:1; display:flex; flex-direction:column; padding:10px 14px;
   overflow-y:auto; min-height:0;
@@ -242,7 +242,7 @@ body { background:#0a1214; color:var(--white); font-family:var(--mono); min-heig
   font-family:var(--disp); font-weight:900; font-size:clamp(12px,2.2vw,20px);
   letter-spacing:1px; line-height:1; padding-bottom:6px;
   border-bottom:1px solid rgba(255,91,53,0.2); flex-shrink:0;
-  position:sticky; top:0; background:var(--dark3); z-index:1; margin-bottom:6px;
+  position:sticky; top:0; background:#0e181b; z-index:1; margin-bottom:6px;
 }
 .tv-blok-body {
   font-family:var(--disp); font-weight:400;
@@ -870,7 +870,7 @@ function renderPreview(zaalNum) {
     const cols = n === 2 ? 2 : n === 4 ? 2 : 3;
     const baseFs = cols === 2 ? 13 : 11;
     const baseTs = cols === 2 ? 16 : 13;
-    const gridStyle = n === 4 ? 'display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);' : `display:grid;grid-template-columns:repeat(${cols},1fr);`;
+    const gridStyle = n === 4 ? 'display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);overflow:hidden;' : `display:grid;grid-template-columns:repeat(${cols},1fr);overflow:hidden;`;
     const bloksHtml = activeWorkouts.map(w => {
       const zoom = s.blokZoom[w.id] || 100;
       const fs = Math.round(zoom / 100 * baseFs);
@@ -962,7 +962,7 @@ function renderDisplayFull() {
   } else {
     const n = activeWorkouts.length;
     const cols = n === 2 ? 2 : n === 4 ? 2 : 3;
-    const gridStyle = n === 4 ? 'display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);' : `display:grid;grid-template-columns:repeat(${cols},1fr);`;
+    const gridStyle = n === 4 ? 'display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);overflow:hidden;' : `display:grid;grid-template-columns:repeat(${cols},1fr);overflow:hidden;`;
     const baseFs = cols === 2 ? 22 : 16;
     const baseTs = cols === 2 ? 30 : 22;
     const bloksHtml = activeWorkouts.map(w => {
