@@ -1,192 +1,1021 @@
 <!DOCTYPE html>
-<!-- saved from url=(0067)file:///Users/pieter-janbuysmans/Downloads/leap-bookmarklet-v2.html -->
-<html lang="nl"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
-<title>LEAP TV Bookmarklet</title>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LEAP Box TV</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: 'Space Grotesk', sans-serif;
-    background: #000;
-    color: #fff;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 40px;
-  }
-  .card {
-    background: #152024;
-    border-top: 3px solid #ff5b35;
-    border-radius: 4px;
-    padding: 48px;
-    max-width: 640px;
-    width: 100%;
-  }
-  .logo { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: #ff5b35; margin-bottom: 24px; font-weight: 600; }
-  h1 { font-size: 28px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px; }
-  .subtitle { font-size: 14px; color: rgba(255,255,255,0.45); margin-bottom: 40px; line-height: 1.6; }
-  .step { display: flex; gap: 20px; margin-bottom: 28px; align-items: flex-start; }
-  .step-num { width: 32px; height: 32px; border-radius: 50%; background: #ff5b35; color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .step-content { flex: 1; }
-  .step-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
-  .step-desc { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.6; }
-  .bookmarklet-btn { display: inline-block; background: #ff5b35; color: #fff; padding: 14px 28px; border-radius: 3px; font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; text-decoration: none; cursor: grab; margin-top: 8px; transition: opacity 0.2s; border: 2px dashed rgba(255,255,255,0.3); }
-  .bookmarklet-btn:hover { opacity: 0.85; }
-  .drag-hint { font-size: 11px; letter-spacing: 1px; color: rgba(255,255,255,0.3); margin-top: 10px; text-transform: uppercase; }
-  .divider { height: 1px; background: rgba(255,255,255,0.08); margin: 32px 0; }
-  .note { font-size: 12px; color: rgba(255,255,255,0.3); line-height: 1.7; }
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:ital,wght@0,300;0,400;0,600;0,700;0,900;1,700&display=swap');
+
+:root {
+  --orange: #ff5b35;
+  --dark:   #152024;
+  --dark2:  #1c2c32;
+  --dark3:  #0e181b;
+  --white:  #f0ece4;
+  --muted:  #4a6068;
+  --border: rgba(255,91,53,0.18);
+  --mono:   'Share Tech Mono', monospace;
+  --disp:   'Barlow Condensed', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0a1214; color:var(--white); font-family:var(--mono); min-height:100vh; }
+
+/* ─── NAV ─── */
+.nav {
+  background:var(--dark); border-bottom:2px solid var(--orange);
+  height:52px; padding:0 20px;
+  display:flex; align-items:center; gap:0;
+}
+.nav-logo { font-family:var(--disp); font-weight:900; font-size:20px; letter-spacing:3px; margin-right:28px; }
+.nav-logo span { color:var(--orange); }
+
+.nav-tab {
+  height:52px; padding:0 18px;
+  display:flex; align-items:center; gap:8px;
+  font-size:11px; letter-spacing:2px; color:var(--muted);
+  cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px;
+  transition:all .15s; white-space:nowrap;
+}
+.nav-tab:hover { color:var(--white); }
+.nav-tab.active { color:var(--orange); border-bottom-color:var(--orange); }
+.nav-tab .dot { width:7px; height:7px; border-radius:50%; background:var(--muted); flex-shrink:0; }
+.nav-tab.active .dot { background:var(--orange); }
+.nav-tab.z2 .dot { background:#3a8fb5; }
+.nav-tab.z2.active { color:#3a8fb5; border-bottom-color:#3a8fb5; }
+
+.nav-spacer { flex:1; }
+
+.nav-btn {
+  font-family:var(--mono); font-size:9px; letter-spacing:2px;
+  padding:6px 12px; cursor:pointer; transition:all .15s;
+  display:flex; align-items:center; gap:6px; margin-left:8px;
+}
+.nav-btn-ghost { background:transparent; border:1px solid var(--border); color:var(--muted); }
+.nav-btn-ghost:hover { border-color:var(--orange); color:var(--white); }
+.nav-btn-ghost.on { border-color:var(--orange); color:var(--orange); background:rgba(255,91,53,0.08); }
+.nav-btn-primary { background:rgba(255,91,53,0.12); border:1px solid rgba(255,91,53,0.35); color:var(--orange); }
+.nav-btn-primary:hover { background:rgba(255,91,53,0.22); }
+
+/* ─── PAGES ─── */
+.page { display:none; }
+.page.active { display:flex; flex-direction:column; height:calc(100vh - 52px); }
+
+/* ─── CONTROLLER LAYOUT ─── */
+.ctrl-body {
+  display:grid; grid-template-columns:260px 1fr;
+  flex:1; overflow:hidden;
+}
+.sidebar {
+  background:var(--dark); border-right:1px solid var(--border);
+  display:flex; flex-direction:column;
+  overflow-y:auto; padding:16px; gap:16px;
+}
+.s-section { display:flex; flex-direction:column; gap:8px; }
+.s-label {
+  font-size:9px; letter-spacing:3px; color:var(--orange);
+  padding-bottom:6px; border-bottom:1px solid var(--border);
+}
+
+/* Date picker */
+.date-row { display:flex; align-items:center; gap:8px; }
+.date-nav {
+  width:26px; height:26px; background:var(--dark2); border:1px solid var(--border);
+  color:var(--muted); font-size:14px; cursor:pointer; display:flex;
+  align-items:center; justify-content:center; flex-shrink:0; transition:all .15s;
+}
+.date-nav:hover { border-color:var(--orange); color:var(--orange); }
+.date-display-wrap { flex:1; }
+.date-display { font-size:12px; color:var(--white); letter-spacing:1px; cursor:pointer; }
+.date-display:hover { color:var(--orange); }
+.date-display.today { color:var(--orange); }
+.date-sub { font-size:9px; color:var(--muted); margin-top:2px; }
+.date-input-hidden { display:none; }
+
+/* Loading state */
+.blok-loading {
+  font-size:10px; color:var(--muted); letter-spacing:2px;
+  padding:12px 0; text-align:center; display:flex;
+  align-items:center; justify-content:center; gap:8px;
+}
+.spinner {
+  width:12px; height:12px; border:2px solid var(--border);
+  border-top-color:var(--orange); border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+
+.api-error {
+  font-size:10px; color:#e05555; letter-spacing:1px;
+  padding:8px; background:rgba(224,85,85,0.08);
+  border:1px solid rgba(224,85,85,0.2);
+}
+
+/* Track select */
+.track-select {
+  background:var(--dark2); border:1px solid var(--border);
+  color:var(--white); font-family:var(--mono); font-size:12px;
+  padding:8px 10px; width:100%; cursor:pointer; appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23ff5b35'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 10px center;
+  outline:none;
+}
+
+/* Blokken */
+.blok-list { display:flex; flex-direction:column; gap:5px; }
+.blok-item {
+  display:flex; align-items:center; gap:8px;
+  padding:7px 8px; background:var(--dark2);
+  border:1px solid transparent; cursor:pointer;
+  transition:all .15s; user-select:none;
+}
+.blok-item:hover { border-color:var(--border); }
+.blok-item.active { border-color:var(--orange); background:rgba(255,91,53,0.08); }
+.blok-check {
+  width:15px; height:15px; border:1px solid var(--muted); flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; font-size:9px;
+}
+.blok-item.active .blok-check { background:var(--orange); border-color:var(--orange); color:var(--dark); }
+.blok-name { font-family:var(--disp); font-weight:600; font-size:13px; color:var(--white); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.blok-type { font-size:9px; color:var(--muted); letter-spacing:1px; flex-shrink:0; }
+.blok-zoom-ctrl { display:flex; align-items:center; gap:3px; flex-shrink:0; }
+.zoom-sm {
+  width:20px; height:20px; background:var(--dark3); border:1px solid var(--border);
+  color:var(--muted); font-size:12px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; transition:all .15s;
+}
+.zoom-sm:hover { border-color:var(--orange); color:var(--orange); }
+.zoom-sm-val { font-size:9px; color:var(--muted); min-width:28px; text-align:center; }
+.fit-btn { color:var(--orange) !important; border-color:rgba(255,91,53,0.3) !important; font-size:10px !important; }
+
+/* Toggle */
+.toggle-row { display:flex; align-items:center; justify-content:space-between; padding:6px 0; }
+.toggle-label { font-size:11px; color:var(--white); letter-spacing:1px; }
+.toggle {
+  width:34px; height:18px; background:var(--muted); border-radius:9px;
+  position:relative; cursor:pointer; transition:background .2s; flex-shrink:0;
+}
+.toggle.on { background:var(--orange); }
+.toggle::after {
+  content:''; position:absolute; width:12px; height:12px;
+  background:white; border-radius:50%; top:3px; left:3px; transition:transform .2s;
+}
+.toggle.on::after { transform:translateX(16px); }
+
+/* Announcements */
+.announce-list { display:flex; flex-direction:column; gap:3px; }
+.announce-item {
+  display:flex; align-items:center; gap:6px;
+  padding:5px 8px; background:var(--dark2);
+  border:1px solid var(--border); font-size:11px;
+}
+.announce-text { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; }
+.announce-del { color:var(--muted); cursor:pointer; font-size:13px; flex-shrink:0; transition:color .15s; }
+.announce-del:hover { color:var(--orange); }
+.announce-input {
+  flex:1; background:var(--dark2); border:1px solid var(--border);
+  color:var(--white); font-family:var(--mono); font-size:11px;
+  padding:6px 8px; outline:none;
+}
+.announce-input:focus { border-color:var(--orange); }
+.announce-input::placeholder { color:var(--muted); }
+.announce-add {
+  width:28px; background:var(--orange); border:none; color:var(--dark);
+  font-size:18px; cursor:pointer; display:flex; align-items:center;
+  justify-content:center; font-weight:bold; flex-shrink:0;
+}
+.announce-add:hover { opacity:.8; }
+
+/* ─── PREVIEW AREA ─── */
+.ctrl-main {
+  display:flex; flex-direction:column;
+  overflow:hidden; background:var(--dark3);
+}
+.preview-label {
+  padding:8px 16px; font-size:9px; letter-spacing:3px; color:var(--muted);
+  border-bottom:1px solid var(--border);
+}
+.preview-label span { color:var(--orange); }
+.tv-preview {
+  flex:1; padding:16px; display:flex;
+  align-items:center; justify-content:center;
+  background:repeating-linear-gradient(45deg,transparent,transparent 20px,rgba(255,255,255,0.01) 20px,rgba(255,255,255,0.01) 21px);
+}
+.tv-frame {
+  width:100%; max-width:900px; aspect-ratio:16/9;
+  background:var(--dark3); border:2px solid var(--border);
+  overflow:hidden; position:relative; display:flex; flex-direction:column;
+}
+
+/* ─── TV DISPLAY ELEMENTS ─── */
+.tv-topbar {
+  height:40px; background:var(--dark); border-bottom:2px solid var(--orange);
+  display:flex; align-items:center; padding:0 12px; gap:10px; flex-shrink:0;
+}
+.tv-logo-box {
+  width:24px; height:24px; background:var(--orange);
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--disp); font-weight:900; font-size:14px; color:var(--dark); flex-shrink:0;
+}
+.tv-logo-text { font-family:var(--disp); font-weight:900; font-size:16px; letter-spacing:2px; flex-shrink:0; }
+.tv-logo-text span { color:var(--orange); }
+.tv-track-badge {
+  font-family:var(--mono); font-size:9px; letter-spacing:2px;
+  padding:2px 8px; border:1px solid; flex-shrink:0;
+}
+.tv-date-badge {
+  font-size:9px; color:var(--muted); letter-spacing:1px; flex-shrink:0;
+}
+.tv-clock {
+  margin-left:auto; font-family:var(--mono); font-size:14px; font-weight:700;
+  letter-spacing:2px; flex-shrink:0;
+}
+.tv-content { flex:1; display:flex; overflow:hidden; min-height:0; }
+.tv-blok {
+  flex:1; display:flex; flex-direction:column; padding:10px 14px;
+  overflow-y:auto; min-height:0;
+  scrollbar-width:thin; scrollbar-color:rgba(255,91,53,0.25) transparent;
+}
+.tv-blok + .tv-blok { border-left:1px solid rgba(255,255,255,0.04); }
+.tv-blok-title {
+  font-family:var(--disp); font-weight:900; font-size:clamp(12px,2.2vw,20px);
+  letter-spacing:1px; line-height:1; padding-bottom:6px;
+  border-bottom:1px solid rgba(255,91,53,0.2); flex-shrink:0;
+  position:sticky; top:0; background:var(--dark3); z-index:1; margin-bottom:6px;
+}
+.tv-blok-body {
+  font-family:var(--disp); font-weight:400;
+  font-size:clamp(10px,1.6vw,16px); line-height:1.5; color:var(--white);
+}
+.tv-blok-body strong { font-weight:700; }
+
+/* Ticker */
+.tv-bottombar {
+  height:36px; background:var(--dark);
+  border-top:2px solid rgba(255,91,53,0.2);
+  display:flex; align-items:center; flex-shrink:0; overflow:hidden;
+}
+.tv-ticker-label {
+  font-size:9px; letter-spacing:3px; color:var(--dark); background:var(--orange);
+  height:100%; display:flex; align-items:center; padding:0 12px; flex-shrink:0;
+  font-family:var(--mono);
+}
+.tv-ticker-track { flex:1; overflow:hidden; height:100%; display:flex; align-items:center; }
+.tv-ticker-static {
+  font-family:var(--disp); font-weight:600; font-size:13px;
+  letter-spacing:1px; color:var(--white); padding:0 16px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.tv-ticker-scroll {
+  display:flex; align-items:center; white-space:nowrap;
+  animation:ticker-scroll linear infinite;
+}
+.tv-ticker-item {
+  font-family:var(--disp); font-weight:600; font-size:13px;
+  letter-spacing:1px; color:var(--white); padding:0 40px 0 0;
+  display:inline-flex; align-items:center; gap:12px;
+}
+.tv-ticker-sep { color:var(--orange); font-size:16px; }
+@keyframes ticker-scroll { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+
+/* ─── DISPLAY PAGE (fullscreen cast) ─── */
+#page-display {
+  background:var(--dark3);
+  position:fixed; inset:0; z-index:200;
+  display:none; flex-direction:column;
+}
+#page-display.active { display:flex; }
+.display-topbar-btn {
+  position:fixed; bottom:16px; left:50%; transform:translateX(-50%);
+  z-index:201; background:rgba(21,32,36,0.9);
+  border:1px solid rgba(255,91,53,0.4); color:var(--orange);
+  font-family:var(--mono); font-size:10px; letter-spacing:2px;
+  padding:8px 16px; cursor:pointer;
+}
+
+/* ─── ZAAL 2 ACCENT ─── */
+.z2-accent { --orange:#3a8fb5; }
+
+/* ─── MODAL ─── */
+.modal-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.85); z-index:300;
+  align-items:center; justify-content:center;
+}
+.modal-overlay.open { display:flex; }
+.modal-box {
+  background:var(--dark); border:1px solid var(--border);
+  padding:24px; max-width:360px; width:90%;
+}
+.modal-title { font-family:var(--disp); font-weight:700; font-size:16px; letter-spacing:2px; margin-bottom:16px; color:var(--orange); }
+.modal-body { font-size:12px; color:var(--muted); line-height:1.6; margin-bottom:20px; }
+.modal-btn {
+  background:var(--orange); border:none; color:var(--dark);
+  font-family:var(--mono); font-size:11px; letter-spacing:2px;
+  padding:8px 20px; cursor:pointer; width:100%;
+}
+
+/* Empty state */
+.empty-state {
+  flex:1; display:flex; align-items:center; justify-content:center;
+  flex-direction:column; gap:8px;
+}
+.empty-state-text { font-size:10px; letter-spacing:3px; opacity:.3; }
 </style>
-<link rel="stylesheet" href="./LEAP TV Bookmarklet_files/css2"><link rel="stylesheet" href="./LEAP TV Bookmarklet_files/css2"></head>
+</head>
 <body>
-<div class="card">
-  <div class="logo">LEAP Hasselt · TV Setup</div>
-  <h1>BoxTV Branding Bookmarklet</h1>
-  <p class="subtitle">Injecteer de LEAP-huisstijl bovenop de SugarWOD BoxTV pagina. Alle navigatieknoppen blijven bereikbaar.</p>
 
-  <div class="step">
-    <div class="step-num">1</div>
-    <div class="step-content">
-      <div class="step-title">Sleep de knop naar je bladwijzerbalk</div>
-      <div class="step-desc">Zorg dat je bladwijzerbalk zichtbaar is (Ctrl+Shift+B). Sleep de oranje knop naar de balk.</div>
-      <br>
-      <a class="bookmarklet-btn" id="bookmarklet" href="javascript:(function()%7B%0A%20%20var%20TOP_H%20%3D%2058%3B%0A%20%20var%20BOT_H%20%3D%2042%3B%0A%0A%20%20%2F%2F%20Toggle%20off%20als%20al%20actief%0A%20%20if(document.getElementById(&#39;leap-topbar&#39;))%7B%0A%20%20%20%20document.getElementById(&#39;leap-topbar&#39;).remove()%3B%0A%20%20%20%20document.getElementById(&#39;leap-bottombar&#39;).remove()%3B%0A%20%20%20%20%2F%2F%20Reset%20SugarWOD%20layout%0A%20%20%20%20var%20sf%20%3D%20document.querySelector(&#39;.scoreboard-footer&#39;)%3B%0A%20%20%20%20var%20sh%20%3D%20document.querySelector(&#39;.scoreboard-header&#39;)%3B%0A%20%20%20%20var%20sl%20%3D%20document.querySelector(&#39;.scoreboard-left&#39;)%3B%0A%20%20%20%20var%20sr%20%3D%20document.querySelector(&#39;.scoreboard-right&#39;)%3B%0A%20%20%20%20var%20so%20%3D%20document.querySelector(&#39;.scoreboard-overlay&#39;)%3B%0A%20%20%20%20var%20sb%20%3D%20document.querySelector(&#39;.scoreboard-background&#39;)%3B%0A%20%20%20%20if(sf)%7B%20sf.style.bottom%3D&#39;&#39;%3B%20sf.style.top%3D&#39;&#39;%3B%20%7D%0A%20%20%20%20if(sh)%7B%20sh.style.top%3D&#39;&#39;%3B%20sh.style.bottom%3D&#39;&#39;%3B%20%7D%0A%20%20%20%20if(sl)%7B%20sl.style.top%3D&#39;&#39;%3B%20sl.style.bottom%3D&#39;&#39;%3B%20%7D%0A%20%20%20%20if(sr)%7B%20sr.style.top%3D&#39;&#39;%3B%20sr.style.bottom%3D&#39;&#39;%3B%20%7D%0A%20%20%20%20if(so)%7B%20so.style.bottom%3D&#39;&#39;%3B%20%7D%0A%20%20%20%20if(sb)%7B%20sb.style.top%3D&#39;&#39;%3B%20sb.style.bottom%3D&#39;&#39;%3B%20%7D%0A%20%20%20%20var%20oc%20%3D%20document.querySelector(&#39;.overlay-controls-container&#39;)%3B%0A%20%20%20%20if(oc)%7B%20oc.style.top%3D&#39;&#39;%3B%20%7D%0A%20%20%20%20document.querySelectorAll(&#39;.overlay-panel-workout-container&#39;).forEach(function(el)%7B%0A%20%20%20%20%20%20el.style.paddingTop%3D&#39;&#39;%3B%20delete%20el.dataset.leapFixed%3B%0A%20%20%20%20%7D)%3B%0A%20%20%20%20return%3B%0A%20%20%7D%0A%0A%20%20%2F%2F%20Font%0A%20%20var%20font%20%3D%20document.createElement(&#39;link&#39;)%3B%0A%20%20font.rel%3D&#39;stylesheet&#39;%3B%0A%20%20font.href%3D&#39;https%3A%2F%2Ffonts.googleapis.com%2Fcss2%3Ffamily%3DSpace%2BGrotesk%3Awght%40400%3B600%3B700%26display%3Dswap&#39;%3B%0A%20%20document.head.appendChild(font)%3B%0A%0A%20%20%2F%2F%20TOP%20BAR%0A%20%20var%20top%20%3D%20document.createElement(&#39;div&#39;)%3B%0A%20%20top.id%20%3D%20&#39;leap-topbar&#39;%3B%0A%20%20top.style.cssText%20%3D%20&#39;position%3Afixed%3Btop%3A0%3Bleft%3A0%3Bright%3A0%3Bheight%3A&#39;%2BTOP_H%2B&#39;px%3Bbackground%3A%23000%3Bborder-bottom%3A2px%20solid%20%23ff5b35%3Bz-index%3A99999%3Bdisplay%3Aflex%3Balign-items%3Acenter%3Bpadding%3A0%2024px%3Bfont-family%3ASpace%20Grotesk%2Csans-serif%3B&#39;%3B%0A%20%20top.innerHTML%20%3D%20&#39;%3Csvg%20width%3D%2230%22%20height%3D%2230%22%20viewBox%3D%220%200%2036%2038%22%20fill%3D%22none%22%20style%3D%22flex-shrink%3A0%3Bmargin-right%3A12px%22%3E%3Cpolygon%20points%3D%2218%2C1%2035%2C28%201%2C28%22%20fill%3D%22white%22%2F%3E%3Cpolygon%20points%3D%2220%2C11%2018%2C7%2016%2C11%22%20fill%3D%22%23000%22%2F%3E%3Crect%20x%3D%221%22%20y%3D%2231%22%20width%3D%2234%22%20height%3D%223%22%20fill%3D%22white%22%2F%3E%3Crect%20x%3D%221%22%20y%3D%2236%22%20width%3D%2234%22%20height%3D%222%22%20fill%3D%22white%22%2F%3E%3C%2Fsvg%3E&#39;%0A%20%20%2B%20&#39;%3Cspan%20style%3D%22font-size%3A26px%3Bfont-weight%3A700%3Bletter-spacing%3A5px%3Bcolor%3A%23fff%3Bmargin-right%3A16px%3B%22%3ELEAP%3C%2Fspan%3E&#39;%0A%20%20%2B%20&#39;%3Cspan%20style%3D%22width%3A1px%3Bheight%3A24px%3Bbackground%3Argba(255%2C255%2C255%2C0.12)%3Bmargin-right%3A16px%3Bdisplay%3Ainline-block%3Bflex-shrink%3A0%3B%22%3E%3C%2Fspan%3E&#39;%0A%20%20%2B%20&#39;%3Cspan%20style%3D%22font-size%3A9px%3Bletter-spacing%3A3px%3Btext-transform%3Auppercase%3Bcolor%3A%23d9d8d6%3B%22%3EFunctional%20Fitness%20%26middot%3B%20Hasselt%3C%2Fspan%3E&#39;%0A%20%20%2B%20&#39;%3Cspan%20style%3D%22margin-left%3Aauto%3Bfont-size%3A9px%3Bletter-spacing%3A4px%3Btext-transform%3Auppercase%3Bcolor%3Argba(255%2C255%2C255%2C0.12)%3Bmargin-right%3A24px%3Bfont-weight%3A600%3B%22%3ECOMMIT%20TO%20BE%20FIT%3C%2Fspan%3E&#39;%0A%20%20%2B%20&#39;%3Cspan%20id%3D%22leap-clock%22%20style%3D%22font-size%3A22px%3Bfont-weight%3A700%3Bletter-spacing%3A2px%3Bcolor%3A%23ff5b35%3Bfont-family%3Amonospace%3B%22%3E00%3A00%3C%2Fspan%3E&#39;%3B%0A%20%20document.body.appendChild(top)%3B%0A%0A%20%20%2F%2F%20BOTTOM%20BAR%0A%20%20var%20bot%20%3D%20document.createElement(&#39;div&#39;)%3B%0A%20%20bot.id%20%3D%20&#39;leap-bottombar&#39;%3B%0A%20%20bot.style.cssText%20%3D%20&#39;position%3Afixed%3Bbottom%3A0%3Bleft%3A0%3Bright%3A0%3Bheight%3A&#39;%2BBOT_H%2B&#39;px%3Bbackground%3A%23152024%3Bborder-top%3A1px%20solid%20rgba(255%2C91%2C53%2C0.3)%3Bz-index%3A99999%3Bdisplay%3Aflex%3Balign-items%3Acenter%3Bpadding%3A0%2024px%3Bfont-family%3ASpace%20Grotesk%2Csans-serif%3B&#39;%3B%0A%20%20var%20days%3D%5B%22ZO%22%2C%22MA%22%2C%22DI%22%2C%22WO%22%2C%22DO%22%2C%22VR%22%2C%22ZA%22%5D%3B%0A%20%20var%20months%3D%5B%22JAN%22%2C%22FEB%22%2C%22MRT%22%2C%22APR%22%2C%22MEI%22%2C%22JUN%22%2C%22JUL%22%2C%22AUG%22%2C%22SEP%22%2C%22OKT%22%2C%22NOV%22%2C%22DEC%22%5D%3B%0A%20%20var%20now%3Dnew%20Date()%3B%0A%20%20var%20dateStr%3Ddays%5Bnow.getDay()%5D%2B%22%20%22%2Bnow.getDate()%2B%22%20%22%2Bmonths%5Bnow.getMonth()%5D%2B%22%20%22%2Bnow.getFullYear()%3B%0A%20%20bot.innerHTML%20%3D%20&#39;%3Cspan%20style%3D%22font-size%3A10px%3Bletter-spacing%3A2px%3Bcolor%3A%23ff5b35%3Btext-transform%3Auppercase%3Bpadding-right%3A18px%3Bborder-right%3A1px%20solid%20rgba(255%2C255%2C255%2C0.08)%3B%22%3E&#39;%2BdateStr%2B&#39;%3C%2Fspan%3E&#39;%0A%20%20%2B%20&#39;%3Cspan%20style%3D%22font-size%3A10px%3Bletter-spacing%3A2px%3Bcolor%3Argba(255%2C255%2C255%2C0.3)%3Btext-transform%3Auppercase%3Bpadding%3A0%2018px%3Bborder-right%3A1px%20solid%20rgba(255%2C255%2C255%2C0.08)%3B%22%3EScheepvaartkaai%2016%2F1%3C%2Fspan%3E&#39;%0A%20%20%2B%20&#39;%3Cspan%20style%3D%22font-size%3A10px%3Bletter-spacing%3A2px%3Bcolor%3Argba(255%2C255%2C255%2C0.3)%3Btext-transform%3Auppercase%3Bpadding%3A0%2018px%3Bborder-right%3A1px%20solid%20rgba(255%2C255%2C255%2C0.08)%3B%22%3Eleaphasselt.be%3C%2Fspan%3E&#39;%0A%20%20%2B%20&#39;%3Cspan%20style%3D%22flex%3A1%3B%22%3E%3C%2Fspan%3E&#39;%0A%20%20%2B%20&#39;%3Cspan%20style%3D%22font-size%3A10px%3Bletter-spacing%3A2px%3Bcolor%3Argba(255%2C255%2C255%2C0.18)%3Btext-transform%3Auppercase%3Bfont-weight%3A600%3B%22%3E%40leaphasselt%3C%2Fspan%3E&#39;%3B%0A%20%20document.body.appendChild(bot)%3B%0A%0A%20%20%2F%2F%20Verberg%20SugarWOD%20logo%0A%20%20var%20swLogo%20%3D%20document.querySelector(&#39;.scoreboard-footer%20img&#39;)%3B%0A%20%20if(swLogo)%20swLogo.style.visibility%3D&#39;hidden&#39;%3B%0A%0A%20%20%2F%2F%20Pas%20SugarWOD%20layout%20aan%20zodat%20knoppen%20zichtbaar%20blijven%0A%20%20var%20sf%20%3D%20document.querySelector(&#39;.scoreboard-footer&#39;)%3B%0A%20%20var%20sh%20%3D%20document.querySelector(&#39;.scoreboard-header&#39;)%3B%0A%20%20var%20sl%20%3D%20document.querySelector(&#39;.scoreboard-left&#39;)%3B%0A%20%20var%20sr%20%3D%20document.querySelector(&#39;.scoreboard-right&#39;)%3B%0A%20%20var%20so%20%3D%20document.querySelector(&#39;.scoreboard-overlay&#39;)%3B%0A%20%20var%20sb%20%3D%20document.querySelector(&#39;.scoreboard-background&#39;)%3B%0A%0A%20%20if(sf)%7B%20sf.style.bottom%20%3D%20BOT_H%2B&#39;px&#39;%3B%20sf.style.top%20%3D%20&#39;auto&#39;%3B%20%7D%0A%20%20if(sh)%7B%20sh.style.top%20%3D%20TOP_H%2B&#39;px&#39;%3B%20%7D%0A%20%20if(sl)%7B%20sl.style.top%20%3D%20(TOP_H%20%2B%20window.innerHeight%20*%200.10)%20%2B%20&#39;px&#39;%3B%20sl.style.bottom%20%3D%20(BOT_H%20%2B%20window.innerHeight%20*%200.10)%20%2B%20&#39;px&#39;%3B%20%7D%0A%20%20if(sr)%7B%20sr.style.top%20%3D%20(TOP_H%20%2B%20window.innerHeight%20*%200.10)%20%2B%20&#39;px&#39;%3B%20sr.style.bottom%20%3D%20(BOT_H%20%2B%20window.innerHeight%20*%200.10)%20%2B%20&#39;px&#39;%3B%20%7D%0A%20%20if(so)%7B%20so.style.bottom%20%3D%20BOT_H%2B&#39;px&#39;%3B%20%7D%0A%20%20if(sb)%7B%20sb.style.top%20%3D%20TOP_H%2B&#39;px&#39;%3B%20sb.style.bottom%20%3D%20BOT_H%2B&#39;px&#39;%3B%20%7D%0A%0A%20%20%2F%2F%20Verschuif%20de%20overlay%20controls%20(rechtsboven)%20zodat%20ze%20onder%20de%20topbar%20vallen%0A%20%20var%20oc%20%3D%20document.querySelector(&#39;.overlay-controls-container&#39;)%3B%0A%20%20if(oc)%7B%20oc.style.top%20%3D%20(TOP_H%20%2B%2020)%20%2B%20&#39;px&#39;%3B%20%7D%0A%0A%20%20%2F%2F%20Zorg%20dat%20de%20workout%20inhoud%20in%20elk%20paneel%20niet%20achter%20de%20topbar%20valt%0A%20%20document.querySelectorAll(&#39;.overlay-panel-workout-container&#39;).forEach(function(el)%7B%0A%20%20%20%20el.style.paddingTop%20%3D%20TOP_H%20%2B%20&#39;px&#39;%3B%0A%20%20%7D)%3B%0A%0A%20%20%2F%2F%20Observer%20voor%20dynamisch%20toegevoegde%20panelen%20(bv.%20na%20%22Add%20Column%22)%0A%20%20var%20observer%20%3D%20new%20MutationObserver(function()%7B%0A%20%20%20%20document.querySelectorAll(&#39;.overlay-panel-workout-container&#39;).forEach(function(el)%7B%0A%20%20%20%20%20%20if(!el.dataset.leapFixed)%7B%20el.style.paddingTop%20%3D%20TOP_H%20%2B%20&#39;px&#39;%3B%20el.dataset.leapFixed%20%3D%20&#39;1&#39;%3B%20%7D%0A%20%20%20%20%7D)%3B%0A%20%20%7D)%3B%0A%20%20observer.observe(document.body%2C%20%7B%20childList%3A%20true%2C%20subtree%3A%20true%20%7D)%3B%0A%0A%20%20%2F%2F%20Clock%0A%20%20function%20tick()%7B%0A%20%20%20%20var%20n%3Dnew%20Date()%3B%0A%20%20%20%20var%20cl%3Ddocument.getElementById(&#39;leap-clock&#39;)%3B%0A%20%20%20%20if(cl)%20cl.textContent%3DString(n.getHours()).padStart(2%2C&#39;0&#39;)%2B&#39;%3A&#39;%2BString(n.getMinutes()).padStart(2%2C&#39;0&#39;)%3B%0A%20%20%7D%0A%20%20tick()%3B%0A%20%20setInterval(tick%2C15000)%3B%0A%7D)()%3B">⬆ LEAP TV</a>
-      <div class="drag-hint">← Sleep dit naar je bladwijzerbalk</div>
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">LEAP<span>.</span></div>
+  <div class="nav-tab active" id="tab-z1" onclick="switchZaal(1)">
+    <div class="dot"></div>ZAAL 1
+  </div>
+  <div class="nav-tab z2" id="tab-z2" onclick="switchZaal(2)">
+    <div class="dot"></div>ZAAL 2
+  </div>
+  <div class="nav-spacer"></div>
+  <button class="nav-btn nav-btn-ghost" id="alignToggle" onclick="toggleAlign()">
+    <svg width="13" height="13" viewBox="0 0 14 14" fill="currentColor">
+      <rect x="0" y="1" width="14" height="2" rx="1"/>
+      <rect x="2" y="5" width="10" height="2" rx="1"/>
+      <rect x="0" y="9" width="14" height="2" rx="1"/>
+      <rect x="2" y="13" width="10" height="2" rx="1"/>
+    </svg>
+    <span id="alignLabel">LINKS</span>
+  </button>
+  <button class="nav-btn nav-btn-primary" onclick="openDisplay()">↗ DISPLAY</button>
+</nav>
+
+<!-- ZAAL 1 -->
+<div class="page active" id="page-z1">
+  <div class="ctrl-body">
+    <aside class="sidebar" id="sidebar1">
+
+      <div class="s-section">
+        <div class="s-label">Datum</div>
+        <div class="date-row">
+          <button class="date-nav" onclick="shiftDate(1,-1)">‹</button>
+          <div class="date-display-wrap">
+            <div class="date-display today" id="dateDisplay1" onclick="document.getElementById('datePicker1').showPicker()">—</div>
+            <div class="date-sub">Hasselt, Belgium</div>
+          </div>
+          <button class="date-nav" onclick="shiftDate(1,+1)" id="dateNext1">›</button>
+        </div>
+        <input type="date" id="datePicker1" class="date-input-hidden" onchange="onDatePick(1, this.value)">
+      </div>
+
+      <div class="s-section">
+        <div class="s-label">Track</div>
+        <select class="track-select" id="trackSelect1" onchange="onTrackChange(1)">
+          <option value="">Laden...</option>
+        </select>
+      </div>
+
+      <div class="s-section">
+        <div class="s-label">Blokken</div>
+        <div class="blok-list" id="blokList1">
+          <div class="blok-loading"><div class="spinner"></div>WODs laden...</div>
+        </div>
+      </div>
+
+      <div class="s-section">
+        <div class="s-label">Extras</div>
+        <div class="toggle-row">
+          <div class="toggle-label">Klok</div>
+          <div class="toggle on" id="toggle-clock1" onclick="toggleFeature('clock',1)"></div>
+        </div>
+      </div>
+
+      <div class="s-section">
+        <div class="s-label">Aankondigingen</div>
+        <div class="announce-list" id="announceList1"></div>
+        <div style="display:flex;gap:6px;margin-top:4px;">
+          <input class="announce-input" id="announceInput1" placeholder="Typ een bericht..." onkeydown="if(event.key==='Enter')addAnnounce()">
+          <button class="announce-add" onclick="addAnnounce()">+</button>
+        </div>
+      </div>
+
+    </aside>
+
+    <div class="ctrl-main">
+      <div class="preview-label">LIVE PREVIEW — <span>ZAAL 1</span> &nbsp;·&nbsp; wat de TV ziet</div>
+      <div class="tv-preview">
+        <div class="tv-frame" id="tvFrame1"></div>
+      </div>
     </div>
   </div>
+</div>
 
-  <div class="step">
-    <div class="step-num">2</div>
-    <div class="step-content">
-      <div class="step-title">Open de SugarWOD BoxTV URL</div>
-      <div class="step-desc">Navigeer naar je normale app.sugarwod.com/public/tv?id=... link.</div>
+<!-- ZAAL 2 -->
+<div class="page" id="page-z2">
+  <div class="ctrl-body z2-accent">
+    <aside class="sidebar" id="sidebar2">
+
+      <div class="s-section">
+        <div class="s-label">Datum</div>
+        <div class="date-row">
+          <button class="date-nav" onclick="shiftDate(2,-1)">‹</button>
+          <div class="date-display-wrap">
+            <div class="date-display today" id="dateDisplay2" onclick="document.getElementById('datePicker2').showPicker()">—</div>
+            <div class="date-sub">Hasselt, Belgium</div>
+          </div>
+          <button class="date-nav" onclick="shiftDate(2,+1)" id="dateNext2">›</button>
+        </div>
+        <input type="date" id="datePicker2" class="date-input-hidden" onchange="onDatePick(2, this.value)">
+      </div>
+
+      <div class="s-section">
+        <div class="s-label">Track</div>
+        <select class="track-select" id="trackSelect2" onchange="onTrackChange(2)">
+          <option value="">Laden...</option>
+        </select>
+      </div>
+
+      <div class="s-section">
+        <div class="s-label">Blokken</div>
+        <div class="blok-list" id="blokList2">
+          <div class="blok-loading"><div class="spinner"></div>WODs laden...</div>
+        </div>
+      </div>
+
+      <div class="s-section">
+        <div class="s-label">Extras</div>
+        <div class="toggle-row">
+          <div class="toggle-label">Klok</div>
+          <div class="toggle on" id="toggle-clock2" onclick="toggleFeature('clock',2)"></div>
+        </div>
+      </div>
+
+      <div class="s-section">
+        <div class="s-label">Aankondigingen</div>
+        <div style="font-size:10px;color:var(--muted);letter-spacing:1px;">Gedeeld met Zaal 1</div>
+        <div class="announce-list" id="announceList2" style="opacity:.6;pointer-events:none;"></div>
+      </div>
+
+    </aside>
+
+    <div class="ctrl-main">
+      <div class="preview-label" style="color:#3a8fb5">LIVE PREVIEW — <span style="color:#3a8fb5">ZAAL 2</span> &nbsp;·&nbsp; wat de TV ziet</div>
+      <div class="tv-preview">
+        <div class="tv-frame z2-accent" id="tvFrame2"></div>
+      </div>
     </div>
   </div>
+</div>
 
-  <div class="step">
-    <div class="step-num">3</div>
-    <div class="step-content">
-      <div class="step-title">Klik op "LEAP TV" in je bladwijzerbalk</div>
-      <div class="step-desc">De LEAP branding verschijnt. Alle SugarWOD knoppen blijven zichtbaar en klikbaar. Nogmaals klikken verwijdert de overlay.</div>
-    </div>
-  </div>
-
-  <div class="divider"></div>
-  <div class="note">De bookmarklet past de layout van SugarWOD aan zodat de navigatieknoppen nooit achter de LEAP-balken verdwijnen.</div>
+<!-- DISPLAY PAGE (fullscreen — cast dit scherm) -->
+<div id="page-display">
+  <div id="displayInner" style="display:flex;flex-direction:column;height:100%;width:100%;"></div>
+  <button class="display-topbar-btn" onclick="closeDisplay()">← TERUG NAAR CONTROLLER</button>
 </div>
 
 <script>
-const code = `(function(){
-  var TOP_H = 58;
-  var BOT_H = 42;
+// ═══════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════
+const API_KEY  = '063488be-f117-4598-91cb-f497c07c9f0f';
+const API_BASE = 'https://api.sugarwod.com/v2';
+// Netlify function proxy — vereist voor CORS vanuit de browser
+// Bij lokaal testen valt dit terug op directe fetch (werkt niet door CORS)
+const USE_PROXY = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && window.location.hostname !== '';
 
-  // Toggle off als al actief
-  if(document.getElementById('leap-topbar')){
-    document.getElementById('leap-topbar').remove();
-    document.getElementById('leap-bottombar').remove();
-    // Reset SugarWOD layout
-    var sf = document.querySelector('.scoreboard-footer');
-    var sh = document.querySelector('.scoreboard-header');
-    var sl = document.querySelector('.scoreboard-left');
-    var sr = document.querySelector('.scoreboard-right');
-    var so = document.querySelector('.scoreboard-overlay');
-    var sb = document.querySelector('.scoreboard-background');
-    if(sf){ sf.style.bottom=''; sf.style.top=''; }
-    if(sh){ sh.style.top=''; sh.style.bottom=''; }
-    if(sl){ sl.style.top=''; sl.style.bottom=''; }
-    if(sr){ sr.style.top=''; sr.style.bottom=''; }
-    if(so){ so.style.bottom=''; }
-    if(sb){ sb.style.top=''; sb.style.bottom=''; }
-    var oc = document.querySelector('.overlay-controls-container');
-    if(oc){ oc.style.top=''; }
-    document.querySelectorAll('.overlay-panel-workout-container').forEach(function(el){
-      el.style.paddingTop=''; delete el.dataset.leapFixed;
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+const state = {
+  1: {
+    date: todayStr(),
+    trackId: null,
+    workouts: [],        // alle workouts van deze datum
+    tracks: [],          // unieke tracks van deze datum
+    activeBloks: [],     // geselecteerde workout IDs
+    blokZoom: {},
+    showClock: true,
+  },
+  2: {
+    date: todayStr(),
+    trackId: null,
+    workouts: [],
+    tracks: [],
+    activeBloks: [],
+    blokZoom: {},
+    showClock: true,
+  }
+};
+
+// Globale instellingen — persistent
+const ANNOUNCE_KEY = 'leap-boxtv-announcements';
+const ALIGN_KEY    = 'leap-boxtv-align';
+let sharedAnnouncements = JSON.parse(localStorage.getItem(ANNOUNCE_KEY) || '[]');
+let globalAlign = localStorage.getItem(ALIGN_KEY) || 'left';
+
+// BroadcastChannel voor display tabs
+const bc = new BroadcastChannel('leap-boxtv');
+
+// ═══════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════
+function todayStr() {
+  return new Date().toISOString().split('T')[0];
+}
+function fmtDateInt(isoStr) {
+  return isoStr.replace(/-/g, '');
+}
+function fmtDateDisplay(isoStr) {
+  const d = new Date(isoStr + 'T00:00:00');
+  return d.toLocaleDateString('nl-BE', { weekday:'short', day:'numeric', month:'short', year:'numeric' }).toUpperCase();
+}
+function isToday(isoStr) {
+  return isoStr === todayStr();
+}
+
+// ═══════════════════════════════════════════════
+// API
+// ═══════════════════════════════════════════════
+async function apiFetch(path) {
+  // Via Netlify proxy (production) of direct (lokaal — CORS fout verwacht)
+  const url = USE_PROXY
+    ? `/.netlify/functions/sugarwod?path=${encodeURIComponent(path)}`
+    : `${API_BASE}${path}`;
+
+  const headers = USE_PROXY ? {} : { 'Authorization': API_KEY };
+  const res = await fetch(url, { headers });
+  if (!res.ok) throw new Error(`API error ${res.status}`);
+  return res.json();
+}
+
+async function loadWorkouts(zaalNum) {
+  const s = state[zaalNum];
+  const dateInt = fmtDateInt(s.date);
+
+  // Toon loading
+  document.getElementById(`blokList${zaalNum}`).innerHTML =
+    `<div class="blok-loading"><div class="spinner"></div>WODs laden...</div>`;
+
+  try {
+    const data = await apiFetch(`/workouts?scheduled_date=${dateInt}`);
+    const workouts = (data.data || []).sort((a,b) => a.attributes.display_order - b.attributes.display_order);
+
+    s.workouts = workouts;
+    s.activeBloks = [];
+    s.blokZoom = {};
+
+    // Verzamel unieke tracks
+    const trackMap = {};
+    workouts.forEach(w => {
+      const t = w.attributes.track;
+      if (t) trackMap[t.id] = t.attributes_for?.name || t.id;
     });
+    s.tracks = Object.entries(trackMap).map(([id, name]) => ({ id, name }));
+
+    // Vul track dropdown
+    const sel = document.getElementById(`trackSelect${zaalNum}`);
+    sel.innerHTML = s.tracks.map(t =>
+      `<option value="${t.id}">${t.name}</option>`
+    ).join('');
+
+    // Kies eerste track
+    if (s.tracks.length > 0) {
+      s.trackId = s.trackId && s.tracks.find(t => t.id === s.trackId)
+        ? s.trackId : s.tracks[0].id;
+      sel.value = s.trackId;
+    }
+
+    renderBlokList(zaalNum);
+    renderPreview(zaalNum);
+
+  } catch(e) {
+    document.getElementById(`blokList${zaalNum}`).innerHTML =
+      `<div class="api-error">⚠ Kan workouts niet laden<br>${e.message}<br><br>Controleer of de Netlify proxy actief is.</div>`;
+    renderPreview(zaalNum);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// DATE NAVIGATION
+// ═══════════════════════════════════════════════
+function initDates() {
+  const today = todayStr();
+  [1,2].forEach(z => {
+    state[z].date = today;
+    document.getElementById(`datePicker${z}`).value = today;
+    updateDateDisplay(z);
+  });
+}
+
+function updateDateDisplay(zaalNum) {
+  const s = state[zaalNum];
+  const el = document.getElementById(`dateDisplay${zaalNum}`);
+  el.textContent = fmtDateDisplay(s.date);
+  el.classList.toggle('today', isToday(s.date));
+  // Disable vooruit knop als vandaag
+  document.getElementById(`dateNext${zaalNum}`).style.opacity = isToday(s.date) ? '.3' : '1';
+  document.getElementById(`dateNext${zaalNum}`).style.pointerEvents = isToday(s.date) ? 'none' : 'auto';
+}
+
+function shiftDate(zaalNum, delta) {
+  const s = state[zaalNum];
+  const d = new Date(s.date + 'T00:00:00');
+  d.setDate(d.getDate() + delta);
+  const newDate = d.toISOString().split('T')[0];
+  if (newDate > todayStr()) return; // niet in de toekomst
+  s.date = newDate;
+  document.getElementById(`datePicker${zaalNum}`).value = newDate;
+  updateDateDisplay(zaalNum);
+  loadWorkouts(zaalNum);
+}
+
+function onDatePick(zaalNum, val) {
+  if (!val || val > todayStr()) return;
+  state[zaalNum].date = val;
+  updateDateDisplay(zaalNum);
+  loadWorkouts(zaalNum);
+}
+
+// ═══════════════════════════════════════════════
+// TRACK / BLOK RENDER
+// ═══════════════════════════════════════════════
+function onTrackChange(zaalNum) {
+  const sel = document.getElementById(`trackSelect${zaalNum}`);
+  state[zaalNum].trackId = sel.value;
+  state[zaalNum].activeBloks = [];
+  renderBlokList(zaalNum);
+  renderPreview(zaalNum);
+}
+
+function renderBlokList(zaalNum) {
+  const s = state[zaalNum];
+  const list = document.getElementById(`blokList${zaalNum}`);
+
+  const trackWorkouts = s.workouts.filter(w => w.attributes.track?.id === s.trackId);
+
+  if (trackWorkouts.length === 0) {
+    list.innerHTML = `<div class="blok-loading" style="opacity:.4">Geen blokken voor dit track</div>`;
     return;
   }
 
-  // Font
-  var font = document.createElement('link');
-  font.rel='stylesheet';
-  font.href='https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap';
-  document.head.appendChild(font);
+  list.innerHTML = trackWorkouts.map(w => {
+    const id = w.id;
+    const title = w.attributes.title;
+    const scoreType = w.attributes.score_type || '';
+    const isActive = s.activeBloks.includes(id);
+    const zoom = s.blokZoom[id] || 100;
+    return `
+      <div class="blok-item${isActive ? ' active' : ''}" data-id="${id}" data-zaal="${zaalNum}">
+        <div class="blok-check" onclick="toggleBlok(this.parentElement,${zaalNum})">${isActive ? '✓' : ''}</div>
+        <div style="flex:1;overflow:hidden;" onclick="toggleBlok(this.parentElement,${zaalNum})">
+          <div class="blok-name">${title}</div>
+          <div class="blok-type">${scoreType}</div>
+        </div>
+        <div class="blok-zoom-ctrl" onclick="event.stopPropagation()">
+          <button class="zoom-sm" onclick="changeZoom(${zaalNum},'${id}',-10)">−</button>
+          <span class="zoom-sm-val" id="zoom-${zaalNum}-${id}">${zoom}%</span>
+          <button class="zoom-sm" onclick="changeZoom(${zaalNum},'${id}',+10)">+</button>
+          <button class="zoom-sm fit-btn" onclick="fitBlok(${zaalNum},'${id}')" title="Auto-fit">⊡</button>
+        </div>
+      </div>`;
+  }).join('');
+}
 
-  // TOP BAR
-  var top = document.createElement('div');
-  top.id = 'leap-topbar';
-  top.style.cssText = 'position:fixed;top:0;left:0;right:0;height:'+TOP_H+'px;background:#000;border-bottom:2px solid #ff5b35;z-index:99999;display:flex;align-items:center;padding:0 24px;font-family:Space Grotesk,sans-serif;';
-  top.innerHTML = '<svg width="30" height="30" viewBox="0 0 36 38" fill="none" style="flex-shrink:0;margin-right:12px"><polygon points="18,1 35,28 1,28" fill="white"/><polygon points="20,11 18,7 16,11" fill="#000"/><rect x="1" y="31" width="34" height="3" fill="white"/><rect x="1" y="36" width="34" height="2" fill="white"/></svg>'
-  + '<span style="font-size:26px;font-weight:700;letter-spacing:5px;color:#fff;margin-right:16px;">LEAP</span>'
-  + '<span style="width:1px;height:24px;background:rgba(255,255,255,0.12);margin-right:16px;display:inline-block;flex-shrink:0;"></span>'
-  + '<span style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#d9d8d6;">Functional Fitness &middot; Hasselt</span>'
-  + '<span style="margin-left:auto;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,0.12);margin-right:24px;font-weight:600;">COMMIT TO BE FIT</span>'
-  + '<span id="leap-clock" style="font-size:22px;font-weight:700;letter-spacing:2px;color:#ff5b35;font-family:monospace;">00:00</span>';
-  document.body.appendChild(top);
+function toggleBlok(el, zaalNum) {
+  const id = el.dataset.id;
+  const s = state[zaalNum];
+  el.classList.toggle('active');
+  const isActive = el.classList.contains('active');
+  el.querySelector('.blok-check').textContent = isActive ? '✓' : '';
 
-  // BOTTOM BAR
-  var bot = document.createElement('div');
-  bot.id = 'leap-bottombar';
-  bot.style.cssText = 'position:fixed;bottom:0;left:0;right:0;height:'+BOT_H+'px;background:#152024;border-top:1px solid rgba(255,91,53,0.3);z-index:99999;display:flex;align-items:center;padding:0 24px;font-family:Space Grotesk,sans-serif;';
-  var days=["ZO","MA","DI","WO","DO","VR","ZA"];
-  var months=["JAN","FEB","MRT","APR","MEI","JUN","JUL","AUG","SEP","OKT","NOV","DEC"];
-  var now=new Date();
-  var dateStr=days[now.getDay()]+" "+now.getDate()+" "+months[now.getMonth()]+" "+now.getFullYear();
-  bot.innerHTML = '<span style="font-size:10px;letter-spacing:2px;color:#ff5b35;text-transform:uppercase;padding-right:18px;border-right:1px solid rgba(255,255,255,0.08);">'+dateStr+'</span>'
-  + '<span style="font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.3);text-transform:uppercase;padding:0 18px;border-right:1px solid rgba(255,255,255,0.08);">Scheepvaartkaai 16/1</span>'
-  + '<span style="font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.3);text-transform:uppercase;padding:0 18px;border-right:1px solid rgba(255,255,255,0.08);">leaphasselt.be</span>'
-  + '<span style="flex:1;"></span>'
-  + '<span style="font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.18);text-transform:uppercase;font-weight:600;">@leaphasselt</span>';
-  document.body.appendChild(bot);
-
-  // Verberg SugarWOD logo
-  var swLogo = document.querySelector('.scoreboard-footer img');
-  if(swLogo) swLogo.style.visibility='hidden';
-
-  // Pas SugarWOD layout aan zodat knoppen zichtbaar blijven
-  var sf = document.querySelector('.scoreboard-footer');
-  var sh = document.querySelector('.scoreboard-header');
-  var sl = document.querySelector('.scoreboard-left');
-  var sr = document.querySelector('.scoreboard-right');
-  var so = document.querySelector('.scoreboard-overlay');
-  var sb = document.querySelector('.scoreboard-background');
-
-  if(sf){ sf.style.bottom = BOT_H+'px'; sf.style.top = 'auto'; }
-  if(sh){ sh.style.top = TOP_H+'px'; }
-  if(sl){ sl.style.top = (TOP_H + window.innerHeight * 0.10) + 'px'; sl.style.bottom = (BOT_H + window.innerHeight * 0.10) + 'px'; }
-  if(sr){ sr.style.top = (TOP_H + window.innerHeight * 0.10) + 'px'; sr.style.bottom = (BOT_H + window.innerHeight * 0.10) + 'px'; }
-  if(so){ so.style.bottom = BOT_H+'px'; }
-  if(sb){ sb.style.top = TOP_H+'px'; sb.style.bottom = BOT_H+'px'; }
-
-  // Verschuif de overlay controls (rechtsboven) zodat ze onder de topbar vallen
-  var oc = document.querySelector('.overlay-controls-container');
-  if(oc){ oc.style.top = (TOP_H + 20) + 'px'; }
-
-  // Zorg dat de workout inhoud in elk paneel niet achter de topbar valt
-  document.querySelectorAll('.overlay-panel-workout-container').forEach(function(el){
-    el.style.paddingTop = TOP_H + 'px';
-  });
-
-  // Observer voor dynamisch toegevoegde panelen (bv. na "Add Column")
-  var observer = new MutationObserver(function(){
-    document.querySelectorAll('.overlay-panel-workout-container').forEach(function(el){
-      if(!el.dataset.leapFixed){ el.style.paddingTop = TOP_H + 'px'; el.dataset.leapFixed = '1'; }
-    });
-  });
-  observer.observe(document.body, { childList: true, subtree: true });
-
-  // Clock
-  function tick(){
-    var n=new Date();
-    var cl=document.getElementById('leap-clock');
-    if(cl) cl.textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+  if (isActive) {
+    if (!s.activeBloks.includes(id)) s.activeBloks.push(id);
+    renderPreview(zaalNum);
+    setTimeout(() => fitBlok(zaalNum, id), 50);
+  } else {
+    s.activeBloks = s.activeBloks.filter(b => b !== id);
+    renderPreview(zaalNum);
   }
-  tick();
-  setInterval(tick,15000);
-})();`;
+}
 
-document.getElementById('bookmarklet').href = 'javascript:' + encodeURIComponent(code);
+function changeZoom(zaalNum, id, delta) {
+  const s = state[zaalNum];
+  if (!s.blokZoom[id]) s.blokZoom[id] = 100;
+  s.blokZoom[id] = Math.max(50, Math.min(300, s.blokZoom[id] + delta));
+  const el = document.getElementById(`zoom-${zaalNum}-${id}`);
+  if (el) el.textContent = s.blokZoom[id] + '%';
+  renderPreview(zaalNum);
+}
+
+function fitBlok(zaalNum, id) {
+  const s = state[zaalNum];
+  const activeBloks = s.activeBloks;
+  const isSingle = activeBloks.length === 1 && activeBloks[0] === id;
+  let lo = 70, hi = 200, best = 100;
+
+  const tryZoom = (zoom) => {
+    s.blokZoom[id] = zoom;
+    renderPreview(zaalNum);
+    const frame = document.getElementById(`tvFrame${zaalNum}`);
+    if (!frame) return true;
+    if (isSingle) {
+      const wrapper = frame.querySelector('.tv-blok');
+      if (!wrapper) return true;
+      return wrapper.scrollHeight <= wrapper.clientHeight + 2;
+    } else {
+      const idx = activeBloks.indexOf(id);
+      const blokEls = frame.querySelectorAll('.tv-blok');
+      if (!blokEls[idx]) return false;
+      return blokEls[idx].scrollHeight <= blokEls[idx].clientHeight + 2;
+    }
+  };
+
+  for (let i = 0; i < 10; i++) {
+    const mid = Math.round((lo + hi) / 2);
+    if (tryZoom(mid)) { best = mid; lo = mid + 1; }
+    else { hi = mid - 1; }
+  }
+
+  s.blokZoom[id] = best;
+  const el = document.getElementById(`zoom-${zaalNum}-${id}`);
+  if (el) el.textContent = best + '%';
+  renderPreview(zaalNum);
+}
+
+function toggleFeature(feat, zaalNum) {
+  const key = `toggle-${feat}${zaalNum}`;
+  const el = document.getElementById(key);
+  el.classList.toggle('on');
+  state[zaalNum][`show${feat.charAt(0).toUpperCase()+feat.slice(1)}`] = el.classList.contains('on');
+  renderPreview(zaalNum);
+}
+
+// ═══════════════════════════════════════════════
+// ALIGN
+// ═══════════════════════════════════════════════
+function toggleAlign() {
+  globalAlign = globalAlign === 'left' ? 'center' : 'left';
+  localStorage.setItem(ALIGN_KEY, globalAlign);
+  const btn = document.getElementById('alignToggle');
+  const label = document.getElementById('alignLabel');
+  btn.classList.toggle('on', globalAlign === 'center');
+  label.textContent = globalAlign === 'center' ? 'CENTRAAL' : 'LINKS';
+  renderPreview(1);
+  renderPreview(2);
+}
+
+function initAlign() {
+  const btn = document.getElementById('alignToggle');
+  const label = document.getElementById('alignLabel');
+  btn.classList.toggle('on', globalAlign === 'center');
+  label.textContent = globalAlign === 'center' ? 'CENTRAAL' : 'LINKS';
+}
+
+// ═══════════════════════════════════════════════
+// ANNOUNCEMENTS
+// ═══════════════════════════════════════════════
+function renderAnnounceLists() {
+  [1,2].forEach(z => {
+    const el = document.getElementById(`announceList${z}`);
+    if (!el) return;
+    el.innerHTML = sharedAnnouncements.map((msg,i) => `
+      <div class="announce-item">
+        <span class="announce-text">${msg}</span>
+        <span class="announce-del" onclick="removeAnnounce(${i})">×</span>
+      </div>`).join('');
+  });
+}
+
+function addAnnounce() {
+  const input = document.getElementById('announceInput1');
+  const val = input.value.trim();
+  if (!val) return;
+  sharedAnnouncements.push(val);
+  localStorage.setItem(ANNOUNCE_KEY, JSON.stringify(sharedAnnouncements));
+  input.value = '';
+  renderAnnounceLists();
+  renderPreview(1);
+  renderPreview(2);
+}
+
+function removeAnnounce(idx) {
+  sharedAnnouncements.splice(idx, 1);
+  localStorage.setItem(ANNOUNCE_KEY, JSON.stringify(sharedAnnouncements));
+  renderAnnounceLists();
+  renderPreview(1);
+  renderPreview(2);
+}
+
+// ═══════════════════════════════════════════════
+// TICKER HTML
+// ═══════════════════════════════════════════════
+function buildTicker(accentColor) {
+  const a = sharedAnnouncements;
+  if (a.length === 0) return `
+    <div class="tv-ticker-label" style="background:${accentColor}">LEAPHASSELT.BE</div>
+    <div class="tv-ticker-track">
+      <div class="tv-ticker-static" style="color:var(--muted);font-size:10px;letter-spacing:2px;">SCHEEPVAARTKAAI 16/1 · HASSELT · TAKE THE LEAP!</div>
+    </div>`;
+  if (a.length === 1) return `
+    <div class="tv-ticker-label" style="background:${accentColor}">AANKONDIGING</div>
+    <div class="tv-ticker-track">
+      <div class="tv-ticker-static">${a[0]}</div>
+    </div>`;
+  const items = [...a,...a].map(msg => `
+    <span class="tv-ticker-item"><span class="tv-ticker-sep">▸</span>${msg}</span>`).join('');
+  const dur = Math.max(12, a.join('').length * 0.22);
+  return `
+    <div class="tv-ticker-label" style="background:${accentColor}">AANKONDIGINGEN</div>
+    <div class="tv-ticker-track">
+      <div class="tv-ticker-scroll" style="animation-duration:${dur}s">${items}</div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════
+// RENDER PREVIEW
+// ═══════════════════════════════════════════════
+function renderPreview(zaalNum) {
+  const s = state[zaalNum];
+  const frame = document.getElementById(`tvFrame${zaalNum}`);
+  if (!frame) return;
+
+  const accent = zaalNum === 1 ? '#ff5b35' : '#3a8fb5';
+  const trackName = s.tracks.find(t => t.id === s.trackId)?.name?.toUpperCase() || '';
+  const dateStr = fmtDateDisplay(s.date);
+
+  // Werkouts van geselecteerd track, in volgorde, alleen actieve
+  const trackWorkouts = s.workouts.filter(w => w.attributes.track?.id === s.trackId);
+  const activeWorkouts = trackWorkouts.filter(w => s.activeBloks.includes(w.id));
+
+  // Content
+  let contentHtml;
+  if (activeWorkouts.length === 0) {
+    contentHtml = `
+      <div class="empty-state">
+        <div class="empty-state-text">GEEN BLOKKEN GESELECTEERD</div>
+      </div>`;
+  } else if (activeWorkouts.length === 1) {
+    const w = activeWorkouts[0];
+    const zoom = s.blokZoom[w.id] || 100;
+    const fs = Math.round(zoom / 100 * 15);
+    const ts = Math.round(zoom / 100 * 20);
+    const body = w.attributes.description?.replace(/\n/g,'<br>') || '';
+    contentHtml = `
+      <div class="tv-content">
+        <div class="tv-blok" style="align-items:${globalAlign==='center'?'center':'flex-start'};">
+          <div class="tv-blok-title" style="color:${accent};font-size:${ts}px;text-align:${globalAlign};width:100%;">${w.attributes.title}</div>
+          <div class="tv-blok-body" style="font-size:${fs}px;text-align:${globalAlign};">${body}</div>
+        </div>
+      </div>`;
+  } else {
+    const cols = Math.min(activeWorkouts.length, 3);
+    const baseFs = cols === 2 ? 13 : 11;
+    const baseTs = cols === 2 ? 16 : 13;
+    const bloksHtml = activeWorkouts.map(w => {
+      const zoom = s.blokZoom[w.id] || 100;
+      const fs = Math.round(zoom / 100 * baseFs);
+      const ts = Math.round(zoom / 100 * baseTs);
+      const body = w.attributes.description?.replace(/\n/g,'<br>') || '';
+      return `
+        <div class="tv-blok" style="align-items:${globalAlign==='center'?'center':'flex-start'};">
+          <div class="tv-blok-title" style="color:${accent};font-size:${ts}px;text-align:${globalAlign};width:100%;">${w.attributes.title}</div>
+          <div class="tv-blok-body" style="font-size:${fs}px;text-align:${globalAlign};">${body}</div>
+        </div>`;
+    }).join('');
+    contentHtml = `
+      <div class="tv-content" style="display:grid;grid-template-columns:repeat(${cols},1fr);">
+        ${bloksHtml}
+      </div>`;
+  }
+
+  frame.innerHTML = `
+    <div class="tv-topbar" style="border-bottom-color:${accent}">
+      <div class="tv-logo-box" style="background:${accent}">L</div>
+      <div class="tv-logo-text">LEAP<span style="color:${accent}">.</span></div>
+      <div class="tv-track-badge" style="color:${accent};border-color:${accent}40">${trackName}</div>
+      <div class="tv-date-badge">${isToday(s.date) ? '' : dateStr}</div>
+      ${s.showClock ? `<div class="tv-clock" style="color:${accent}">00:00</div>` : ''}
+    </div>
+    ${contentHtml}
+    <div class="tv-bottombar">${buildTicker(accent)}</div>
+  `;
+
+  updateClock();
+
+  // Broadcast naar display tabs
+  bc.postMessage({ zaal: zaalNum, html: frame.innerHTML });
+}
+
+// ═══════════════════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════════════════
+function updateClock() {
+  const now = new Date();
+  const t = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  document.querySelectorAll('.tv-clock').forEach(el => el.textContent = t);
+}
+setInterval(() => {
+  updateClock();
+  // Broadcast clock updates
+  [1,2].forEach(z => {
+    const frame = document.getElementById(`tvFrame${z}`);
+    if (frame) bc.postMessage({ zaal: z, html: frame.innerHTML });
+  });
+}, 30000);
+
+// ═══════════════════════════════════════════════
+// DISPLAY PAGE (fullscreen)
+// ═══════════════════════════════════════════════
+let displayZaal = 1;
+
+function openDisplay() {
+  displayZaal = document.getElementById('tab-z1').classList.contains('active') ? 1 : 2;
+  renderDisplayFull();
+  document.getElementById('page-display').classList.add('active');
+}
+
+function closeDisplay() {
+  document.getElementById('page-display').classList.remove('active');
+}
+
+function renderDisplayFull() {
+  const s = state[displayZaal];
+  const accent = displayZaal === 1 ? '#ff5b35' : '#3a8fb5';
+  const trackName = s.tracks.find(t => t.id === s.trackId)?.name?.toUpperCase() || '';
+  const dateStr = fmtDateDisplay(s.date);
+  const trackWorkouts = s.workouts.filter(w => w.attributes.track?.id === s.trackId);
+  const activeWorkouts = trackWorkouts.filter(w => s.activeBloks.includes(w.id));
+
+  let contentHtml;
+  if (activeWorkouts.length === 0) {
+    contentHtml = `<div class="empty-state"><div class="empty-state-text">GEEN BLOKKEN GESELECTEERD</div></div>`;
+  } else if (activeWorkouts.length === 1) {
+    const w = activeWorkouts[0];
+    const zoom = s.blokZoom[w.id] || 100;
+    const fs = Math.round(zoom / 100 * 26);
+    const ts = Math.round(zoom / 100 * 38);
+    const body = w.attributes.description?.replace(/\n/g,'<br>') || '';
+    contentHtml = `
+      <div class="tv-content">
+        <div class="tv-blok" style="padding:28px 40px;align-items:${globalAlign==='center'?'center':'flex-start'};">
+          <div class="tv-blok-title" style="color:${accent};font-size:${ts}px;text-align:${globalAlign};width:100%;margin-bottom:16px;padding-bottom:12px;border-bottom-color:${accent}40;">${w.attributes.title}</div>
+          <div class="tv-blok-body" style="font-size:${fs}px;text-align:${globalAlign};">${body}</div>
+        </div>
+      </div>`;
+  } else {
+    const cols = Math.min(activeWorkouts.length, 3);
+    const baseFs = cols === 2 ? 22 : 16;
+    const baseTs = cols === 2 ? 30 : 22;
+    const bloksHtml = activeWorkouts.map(w => {
+      const zoom = s.blokZoom[w.id] || 100;
+      const fs = Math.round(zoom / 100 * baseFs);
+      const ts = Math.round(zoom / 100 * baseTs);
+      const body = w.attributes.description?.replace(/\n/g,'<br>') || '';
+      return `
+        <div class="tv-blok" style="padding:20px 28px;align-items:${globalAlign==='center'?'center':'flex-start'};">
+          <div class="tv-blok-title" style="color:${accent};font-size:${ts}px;text-align:${globalAlign};width:100%;margin-bottom:10px;">${w.attributes.title}</div>
+          <div class="tv-blok-body" style="font-size:${fs}px;text-align:${globalAlign};">${body}</div>
+        </div>`;
+    }).join('');
+    contentHtml = `
+      <div class="tv-content" style="display:grid;grid-template-columns:repeat(${cols},1fr);">
+        ${bloksHtml}
+      </div>`;
+  }
+
+  document.getElementById('displayInner').innerHTML = `
+    <div style="height:56px;background:var(--dark);border-bottom:3px solid ${accent};display:flex;align-items:center;padding:0 24px;gap:14px;flex-shrink:0;">
+      <div style="width:36px;height:36px;background:${accent};display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:900;font-size:22px;color:var(--dark);">L</div>
+      <div style="font-family:var(--disp);font-weight:900;font-size:26px;letter-spacing:3px;">LEAP<span style="color:${accent}">.</span></div>
+      <div style="font-size:11px;letter-spacing:3px;padding:3px 12px;border:1px solid ${accent}40;color:${accent};">${trackName}</div>
+      ${!isToday(s.date) ? `<div style="font-size:10px;color:var(--muted);letter-spacing:1px;">${dateStr}</div>` : ''}
+      ${s.showClock ? `<div class="tv-clock" style="color:${accent};margin-left:auto;font-size:22px;">${new Date().getHours().toString().padStart(2,'0')}:${new Date().getMinutes().toString().padStart(2,'0')}</div>` : ''}
+    </div>
+    ${contentHtml}
+    <div class="tv-bottombar" style="height:44px;">${buildTicker(accent)}</div>
+  `;
+}
+
+// ═══════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════
+function switchZaal(num) {
+  [1,2].forEach(z => {
+    document.getElementById(`page-z${z}`).classList.toggle('active', z === num);
+    document.getElementById(`tab-z${z}`).classList.toggle('active', z === num);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+function init() {
+  initDates();
+  initAlign();
+  renderAnnounceLists();
+  loadWorkouts(1);
+  loadWorkouts(2);
+}
+
+init();
 </script>
-
-
-<div id="leap-topbar" style="position: fixed; top: 0px; left: 0px; right: 0px; height: 58px; background: rgb(0, 0, 0); border-bottom: 2px solid rgb(255, 91, 53); z-index: 99999; display: flex; align-items: center; padding: 0px 24px; font-family: &quot;Space Grotesk&quot;, sans-serif;"><svg width="30" height="30" viewBox="0 0 36 38" fill="none" style="flex-shrink:0;margin-right:12px"><polygon points="18,1 35,28 1,28" fill="white"></polygon><polygon points="20,11 18,7 16,11" fill="#000"></polygon><rect x="1" y="31" width="34" height="3" fill="white"></rect><rect x="1" y="36" width="34" height="2" fill="white"></rect></svg><span style="font-size:26px;font-weight:700;letter-spacing:5px;color:#fff;margin-right:16px;">LEAP</span><span style="width:1px;height:24px;background:rgba(255,255,255,0.12);margin-right:16px;display:inline-block;flex-shrink:0;"></span><span style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#d9d8d6;">Functional Fitness · Hasselt</span><span style="margin-left:auto;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,0.12);margin-right:24px;font-weight:600;">COMMIT TO BE FIT</span><span id="leap-clock" style="font-size:22px;font-weight:700;letter-spacing:2px;color:#ff5b35;font-family:monospace;">19:45</span></div><div id="leap-bottombar" style="position: fixed; bottom: 0px; left: 0px; right: 0px; height: 42px; background: rgb(21, 32, 36); border-top: 1px solid rgba(255, 91, 53, 0.3); z-index: 99999; display: flex; align-items: center; padding: 0px 24px; font-family: &quot;Space Grotesk&quot;, sans-serif;"><span style="font-size:10px;letter-spacing:2px;color:#ff5b35;text-transform:uppercase;padding-right:18px;border-right:1px solid rgba(255,255,255,0.08);">VR 27 FEB 2026</span><span style="font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.3);text-transform:uppercase;padding:0 18px;border-right:1px solid rgba(255,255,255,0.08);">Scheepvaartkaai 16/1</span><span style="font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.3);text-transform:uppercase;padding:0 18px;border-right:1px solid rgba(255,255,255,0.08);">leaphasselt.be</span><span style="flex:1;"></span><span style="font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.18);text-transform:uppercase;font-weight:600;">@leaphasselt</span></div></body></html>
+</body>
+</html>
