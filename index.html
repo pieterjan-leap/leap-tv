@@ -555,7 +555,7 @@ async function loadWorkouts(zaalNum) {
     `<div class="blok-loading"><div class="spinner"></div>WODs laden...</div>`;
 
   try {
-    const data = await apiFetch(`/workouts?scheduled_date=${dateInt}`);
+    const data = await apiFetch(`/v2/workouts?scheduled_date=${dateInt}`);
     const workouts = (data.data || []).sort((a,b) => a.attributes.display_order - b.attributes.display_order);
 
     s.workouts = workouts;
