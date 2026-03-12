@@ -296,8 +296,10 @@ body { background:#0a1214; color:var(--white); font-family:var(--mono); min-heig
   background:var(--dark3);
   position:fixed; inset:0; z-index:200;
   display:none; flex-direction:column;
+  height:100vh; width:100vw;
 }
 #page-display.active { display:flex; }
+#displayInner { flex:1; min-height:0; display:flex; flex-direction:column; }
 .display-topbar-btn {
   position:fixed; bottom:16px; left:50%; transform:translateX(-50%);
   z-index:201; background:rgba(21,32,36,0.9);
@@ -479,7 +481,7 @@ body { background:#0a1214; color:var(--white); font-family:var(--mono); min-heig
 
 <!-- DISPLAY PAGE (fullscreen — cast dit scherm) -->
 <div id="page-display">
-  <div id="displayInner" style="display:flex;flex-direction:column;height:100%;width:100%;"></div>
+  <div id="displayInner"></div>
   <button class="display-topbar-btn" onclick="closeDisplay()">← TERUG NAAR CONTROLLER</button>
 </div>
 
