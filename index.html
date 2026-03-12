@@ -866,9 +866,11 @@ function renderPreview(zaalNum) {
         </div>
       </div>`;
   } else {
-    const cols = Math.min(activeWorkouts.length, 3);
+    const n = activeWorkouts.length;
+    const cols = n === 2 ? 2 : n === 4 ? 2 : 3;
     const baseFs = cols === 2 ? 13 : 11;
     const baseTs = cols === 2 ? 16 : 13;
+    const gridStyle = n === 4 ? 'display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);' : `display:grid;grid-template-columns:repeat(${cols},1fr);`;
     const bloksHtml = activeWorkouts.map(w => {
       const zoom = s.blokZoom[w.id] || 100;
       const fs = Math.round(zoom / 100 * baseFs);
@@ -880,10 +882,7 @@ function renderPreview(zaalNum) {
           <div class="tv-blok-body" style="font-size:${fs}px;text-align:${globalAlign};">${body}</div>
         </div>`;
     }).join('');
-    contentHtml = `
-      <div class="tv-content" style="display:grid;grid-template-columns:repeat(${cols},1fr);">
-        ${bloksHtml}
-      </div>`;
+    contentHtml = `<div class="tv-content" style="${gridStyle}">${bloksHtml}</div>`;
   }
 
   frame.innerHTML = `
@@ -961,7 +960,9 @@ function renderDisplayFull() {
         </div>
       </div>`;
   } else {
-    const cols = Math.min(activeWorkouts.length, 3);
+    const n = activeWorkouts.length;
+    const cols = n === 2 ? 2 : n === 4 ? 2 : 3;
+    const gridStyle = n === 4 ? 'display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);' : `display:grid;grid-template-columns:repeat(${cols},1fr);`;
     const baseFs = cols === 2 ? 22 : 16;
     const baseTs = cols === 2 ? 30 : 22;
     const bloksHtml = activeWorkouts.map(w => {
@@ -975,10 +976,7 @@ function renderDisplayFull() {
           <div class="tv-blok-body" style="font-size:${fs}px;text-align:${globalAlign};">${body}</div>
         </div>`;
     }).join('');
-    contentHtml = `
-      <div class="tv-content" style="display:grid;grid-template-columns:repeat(${cols},1fr);">
-        ${bloksHtml}
-      </div>`;
+    contentHtml = `<div class="tv-content" style="${gridStyle}">${bloksHtml}</div>`;
   }
 
   document.getElementById('displayInner').innerHTML = `
