@@ -948,7 +948,15 @@ let displayZaal = 1;
 
 function openDisplay() {
   const zaal = document.getElementById('tab-z1').classList.contains('active') ? 1 : 2;
-  window.open(`?display=${zaal}`, '_blank');
+  // Stuur frame elke 500ms voor de eerste 3s zodat display tab het zeker ontvangt
+  const sendFrame = () => {
+    const frame = document.getElementById('tvFrame' + zaal);
+    if (frame) bc.postMessage({ type: 'frameUpdate', zaal, html: frame.innerHTML, frameW: frame.offsetWidth, frameH: frame.offsetHeight });
+  };
+  sendFrame();
+  const retryId = setInterval(sendFrame, 500);
+  setTimeout(() => clearInterval(retryId), 3000);
+  window.open('?display=' + zaal, '_blank');
 }
 
 function renderDisplayFull() {
@@ -1111,14 +1119,12 @@ function init() {
     return; // Geen normale init
   }
 
-  // Luister ook of een display-tab om state vraagt
+  // Luister of een display-tab om frame vraagt
   bc.onmessage = (e) => {
     if (e.data.type === 'requestState') {
       const z = e.data.zaal;
-      const frame = document.getElementById(`tvFrame${z}`);
-      if (frame && state[z].activeBloks.length > 0) {
-        bc.postMessage({ type: 'frameUpdate', zaal: z, html: frame.innerHTML, frameW: frame.offsetWidth, frameH: frame.offsetHeight });
-      }
+      const frame = document.getElementById('tvFrame' + z);
+      if (frame) bc.postMessage({ type: 'frameUpdate', zaal: z, html: frame.innerHTML, frameW: frame.offsetWidth, frameH: frame.offsetHeight });
     }
   };
 
