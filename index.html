@@ -299,7 +299,7 @@ body { background:#0a1214; color:var(--white); font-family:var(--mono); min-heig
   height:100vh; width:100vw;
 }
 #page-display.active { display:flex; }
-#displayInner { flex:1; min-height:0; position:relative; overflow:hidden; }
+#displayInner { flex:1; min-height:0; display:flex; flex-direction:column; }
 .display-topbar-btn {
   position:fixed; bottom:16px; left:50%; transform:translateX(-50%);
   z-index:201; background:rgba(21,32,36,0.9);
@@ -873,7 +873,7 @@ function renderPreview(zaalNum) {
     const zoom = s.blokZoom[w.id] || 100;
     const fs = Math.round(zoom / 100 * 15);
     const ts = Math.round(zoom / 100 * 20);
-    const body = w.attributes.description?.replace(/\n/g,'<br>') || '';
+    const body = (w.attributes.description || '').split('\n').join('<br>') || '';
     // tv-blok-center centreert verticaal als inhoud past; scrollt als het niet past
     contentHtml = `<div class="tv-content">
         <div class="tv-blok">
@@ -896,7 +896,7 @@ function renderPreview(zaalNum) {
       const zoom = s.blokZoom[w.id] || 100;
       const fs = Math.round(zoom / 100 * baseFs);
       const ts = Math.round(zoom / 100 * baseTs);
-      const body = w.attributes.description?.replace(/\n/g,'<br>') || '';
+      const body = (w.attributes.description || '').split('\n').join('<br>') || '';
       return `<div class="tv-blok" style="text-align:${globalAlign};">
           <div class="tv-blok-title" style="color:${accent};font-size:${ts}px;">${w.attributes.title}</div>
           <div class="tv-blok-body" style="font-size:${fs}px;">${body}</div>
@@ -926,9 +926,8 @@ function renderPreview(zaalNum) {
 
 function broadcastFrame(zaalNum) {
   const frame = document.getElementById('tvFrame' + zaalNum);
-  if (!frame) return;
-  const scrollPositions = [...frame.querySelectorAll('.tv-blok')].map(b => b.scrollTop);
-  bc.postMessage({ type: 'frameUpdate', zaal: zaalNum, html: frame.innerHTML, frameW: frame.offsetWidth, frameH: frame.offsetHeight, scrollPositions });
+  const scrollPositions = frame ? [...frame.querySelectorAll('.tv-blok')].map(b => b.scrollTop) : [];
+  bc.postMessage({ type: 'stateUpdate', zaal: zaalNum, state: state[zaalNum], globalAlign, announcements: sharedAnnouncements, scrollPositions });
 }
 
 function broadcastScroll(zaalNum) {
@@ -983,7 +982,7 @@ function renderDisplayFull() {
     const zoom = s.blokZoom[w.id] || 100;
     const fs = Math.round(zoom / 100 * 26);
     const ts = Math.round(zoom / 100 * 38);
-    const body = w.attributes.description?.replace(/\n/g,'<br>') || '';
+    const body = (w.attributes.description || '').split('\n').join('<br>') || '';
     contentHtml = `<div class="tv-content">
         <div class="tv-blok" style="padding:28px 40px;">
           <div class="tv-blok-center" style="text-align:${globalAlign};">
@@ -1004,7 +1003,7 @@ function renderDisplayFull() {
       const zoom = s.blokZoom[w.id] || 100;
       const fs = Math.round(zoom / 100 * baseFs);
       const ts = Math.round(zoom / 100 * baseTs);
-      const body = w.attributes.description?.replace(/\n/g,'<br>') || '';
+      const body = (w.attributes.description || '').split('\n').join('<br>') || '';
       return `<div class="tv-blok" style="padding:20px 28px;text-align:${globalAlign};">
           <div class="tv-blok-title" style="color:${accent};font-size:${ts}px;">${w.attributes.title}</div>
           <div class="tv-blok-body" style="font-size:${fs}px;">${body}</div>
@@ -1087,93 +1086,123 @@ function init() {
     dp.classList.add('active');
     document.getElementById('page-display').querySelector('.display-topbar-btn').style.display = 'none';
 
-    // Luister op BroadcastChannel voor frame/scroll updates van controller
+    // Declareer state VOOR gebruik
+    let displayState = null;
+    let displayScrollPositions = [];
+
+    function renderDisplay() {
+      if (!displayState) return;
+      const s = displayState;
+      const di = document.getElementById('displayInner');
+      const accent = zaal === 1 ? '#ff5b35' : '#3a8fb5';
+      const trackName = (s.tracks?.find(t => t.id === s.trackId)?.name || '').toUpperCase();
+      const dateStr = fmtDateDisplay ? fmtDateDisplay(s.date) : s.date;
+
+      const trackWorkouts = (s.workouts || []).filter(w => w.attributes.track?.id === s.trackId);
+      const activeWorkouts = trackWorkouts.filter(w => s.activeBloks.includes(w.id));
+
+      let contentHtml;
+      if (activeWorkouts.length === 0) {
+        contentHtml = '<div class="empty-state"><div class="empty-state-text">GEEN BLOKKEN GESELECTEERD</div></div>';
+      } else {
+        const n = activeWorkouts.length;
+        // Gebruik viewport hoogte als basis voor font sizing
+        const vhBase = window.innerHeight / 900; // 900 = referentie hoogte
+        if (n === 1) {
+          const w = activeWorkouts[0];
+          const zoom = (s.blokZoom?.[w.id] || 100) / 100;
+          const fs = Math.round(zoom * 26 * vhBase) + 'px';
+          const ts = Math.round(zoom * 38 * vhBase) + 'px';
+          const body = (w.attributes.description || '').replace(/\n/g,'<br>');
+          contentHtml = `<div class="tv-content"><div class="tv-blok"><div class="tv-blok-center" style="text-align:${globalAlign};">
+            <div class="tv-blok-title" style="color:${accent};font-size:${ts};">${w.attributes.title}</div>
+            <div class="tv-blok-body" style="font-size:${fs};">${body}</div>
+          </div></div></div>`;
+        } else {
+          const cols = n === 2 ? 2 : n === 4 ? 2 : 3;
+          const baseFs = Math.round((cols === 2 ? 22 : 16) * vhBase);
+          const baseTs = Math.round((cols === 2 ? 30 : 22) * vhBase);
+          const contentStyle = n === 4
+            ? 'display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:100%;'
+            : 'display:flex;';
+          const bloksHtml = activeWorkouts.map(w => {
+            const zoom = (s.blokZoom?.[w.id] || 100) / 100;
+            const fs = Math.round(zoom * baseFs) + 'px';
+            const ts = Math.round(zoom * baseTs) + 'px';
+            const body = (w.attributes.description || '').replace(/\n/g,'<br>');
+            return `<div class="tv-blok" style="text-align:${globalAlign};">
+              <div class="tv-blok-title" style="color:${accent};font-size:${ts};">${w.attributes.title}</div>
+              <div class="tv-blok-body" style="font-size:${fs};">${body}</div>
+            </div>`;
+          }).join('');
+          contentHtml = `<div class="tv-content" style="${contentStyle}">${bloksHtml}</div>`;
+        }
+      }
+
+      const now = new Date();
+      const clockStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+      di.innerHTML = `
+        <div class="tv-topbar" style="border-bottom-color:${accent}">
+          <div class="tv-logo-box" style="background:${accent}">L</div>
+          <div class="tv-logo-text">LEAP<span style="color:${accent}">.</span></div>
+          <div class="tv-track-badge" style="color:${accent};border-color:${accent}40">${trackName}</div>
+          ${s.showClock ? `<div class="tv-clock" style="color:${accent}">${clockStr}</div>` : ''}
+        </div>
+        ${contentHtml}
+        <div class="tv-bottombar">${buildTicker ? buildTicker(accent) : ''}</div>
+      `;
+
+      // Herstel scroll posities
+      if (displayScrollPositions.length) {
+        const blokken = di.querySelectorAll('.tv-blok');
+        displayScrollPositions.forEach((pos, i) => { if (blokken[i]) blokken[i].scrollTop = pos; });
+      }
+    }
+
+    window.addEventListener('resize', () => renderDisplay());
+
+    // BC handler voor display tab
+    let hasContent = false;
     bc.onmessage = (e) => {
       if (e.data.zaal !== zaal) return;
-      if (e.data.type === 'frameUpdate') {
-        applyFrameToDisplay(e.data.html, e.data.frameW, e.data.frameH, e.data.scrollPositions);
+      if (e.data.type === 'stateUpdate') {
+        hasContent = true;
+        displayState = e.data.state;
+        globalAlign = e.data.globalAlign || globalAlign;
+        sharedAnnouncements = e.data.announcements || [];
+        displayScrollPositions = e.data.scrollPositions || [];
+        renderDisplay();
       } else if (e.data.type === 'scrollUpdate') {
-        // Update lastFrame zodat resize ook de juiste scroll positie behoudt
-        if (lastFrame) lastFrame.scrollPositions = e.data.scrollPositions;
-        const blokken = document.querySelectorAll('#scaleWrap .tv-blok');
-        e.data.scrollPositions.forEach((pos, i) => { if (blokken[i]) blokken[i].scrollTop = pos; });
+        displayScrollPositions = e.data.scrollPositions;
+        const blokken = document.querySelectorAll('#displayInner .tv-blok');
+        displayScrollPositions.forEach((pos, i) => { if (blokken[i]) blokken[i].scrollTop = pos; });
       }
     };
-
-    // Sla laatste frame op voor resize
-    let lastFrame = null;
-
-    function applyFrameToDisplay(html, srcW, srcH, scrollPositions) {
-      lastFrame = { html, srcW, srcH, scrollPositions };
-      renderFrame();
-    }
-
-    function renderFrame() {
-      if (!lastFrame) return;
-      const { html, srcW, srcH, scrollPositions } = lastFrame;
-      const di = document.getElementById('displayInner');
-      const availW = window.innerWidth;
-      const availH = window.innerHeight;
-      // Schaal op breedte — vult het volledige scherm zonder zwarte randen
-      // Als hoogte te groot is: schaal op hoogte
-      const scaleW = availW / srcW;
-      const scaleH = availH / srcH;
-      const scale = Math.max(scaleW, scaleH); // cover: vult altijd volledig
-      // Centreer (bij cover kan 1 as licht buiten scherm vallen)
-      const offsetX = Math.round((availW - srcW * scale) / 2);
-      const offsetY = Math.round((availH - srcH * scale) / 2);
-      di.innerHTML = `<div id="scaleWrap" style="
-        width:${srcW}px; height:${srcH}px;
-        transform-origin: top left;
-        transform: scale(${scale});
-        position:absolute;
-        top:${offsetY}px; left:${offsetX}px;
-      ">${html}</div>`;
-      // Herstel scroll posities
-      if (scrollPositions) {
-        const blokken = di.querySelectorAll('.tv-blok');
-        scrollPositions.forEach((pos, i) => { if (blokken[i]) blokken[i].scrollTop = pos; });
-      }
-    }
-
-    // Herbereken scale bij resize (bv. extern scherm of fullscreen)
-    window.addEventListener('resize', () => renderFrame());
 
     // Blijf requestState sturen totdat controller antwoordt
-    let hasContent = false;
-    const origOnMessage = (e) => {
-      if (e.data.zaal === zaal && (e.data.type === 'frameUpdate' || e.data.type === 'scrollUpdate')) {
-        hasContent = true;
-      }
-    };
-    bc.addEventListener('message', origOnMessage);
-
     const pollInterval = setInterval(() => {
       if (!hasContent) bc.postMessage({ type: 'requestState', zaal });
     }, 1000);
     bc.postMessage({ type: 'requestState', zaal });
 
-    // Eigen klok-interval
+    // Klok interval
     setInterval(() => {
       const now = new Date();
-      const t = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+      const t = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
       document.querySelectorAll('.tv-clock').forEach(el => el.textContent = t);
     }, 10000);
 
-    // Toon wachtscherm totdat controller iets stuurt
-    document.getElementById('displayInner').innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;opacity:0.4;">
-        <div style="font-family:var(--mono);font-size:11px;letter-spacing:3px;color:var(--orange);">ZAAL ${zaal} — WACHT OP CONTROLLER...</div>
-      </div>`;
-    return; // Geen normale init
+    // Wachtscherm
+    document.getElementById('displayInner').innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;opacity:0.4;">' +
+      '<div style="font-family:var(--mono);font-size:11px;letter-spacing:3px;color:var(--orange);">ZAAL ' + zaal + ' — WACHT OP CONTROLLER...</div></div>';
+    return;
   }
 
-  // Luister of een display-tab om frame vraagt
+  // Luister of een display-tab om state vraagt
   bc.onmessage = (e) => {
     if (e.data.type === 'requestState') {
-      const z = e.data.zaal;
-      const frame = document.getElementById('tvFrame' + z);
-      if (frame) broadcastFrame(z);
+      broadcastFrame(e.data.zaal);
     }
   };
 
