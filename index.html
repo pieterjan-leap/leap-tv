@@ -922,13 +922,6 @@ function renderPreview(zaalNum) {
   // Broadcast naar display tabs — altijd, ook als geen blokken geselecteerd
   broadcastFrame(zaalNum);
 
-  // Scroll listeners op preview blokken
-  const scrollFrame = document.getElementById('tvFrame' + zaalNum);
-  if (scrollFrame) {
-    scrollFrame.querySelectorAll('.tv-blok').forEach(blok => {
-      blok.addEventListener('scroll', () => broadcastScroll(zaalNum), { passive: true });
-    });
-  }
 }
 
 function broadcastFrame(zaalNum) {
@@ -1166,6 +1159,14 @@ function init() {
   renderAnnounceLists();
   loadWorkouts(1);
   loadWorkouts(2);
+
+  // Scroll listeners via event delegation op frames — overleeft innerHTML resets
+  [1, 2].forEach(z => {
+    const frame = document.getElementById('tvFrame' + z);
+    if (frame) {
+      frame.addEventListener('scroll', () => broadcastScroll(z), { capture: true, passive: true });
+    }
+  });
 }
 
 init();
