@@ -927,7 +927,9 @@ function renderPreview(zaalNum) {
 function broadcastFrame(zaalNum) {
   const frame = document.getElementById('tvFrame' + zaalNum);
   const scrollPositions = frame ? [...frame.querySelectorAll('.tv-blok')].map(b => b.scrollTop) : [];
-  bc.postMessage({ type: 'stateUpdate', zaal: zaalNum, state: state[zaalNum], globalAlign, announcements: sharedAnnouncements, scrollPositions });
+  const frameWidth = frame ? frame.offsetWidth : 670;
+  const frameHeight = frame ? frame.offsetHeight : 370;
+  bc.postMessage({ type: 'stateUpdate', zaal: zaalNum, state: state[zaalNum], globalAlign, announcements: sharedAnnouncements, scrollPositions, frameWidth, frameHeight });
 }
 
 function broadcastScroll(zaalNum) {
@@ -1107,12 +1109,19 @@ function init() {
       } else {
         const n = activeWorkouts.length;
         // Gebruik viewport hoogte als basis voor font sizing
-        // Font sizing via vw — schaalt automatisch mee met elk schermformaat
+        // Font sizing: schaal preview-px proportioneel naar display-grootte
+        // scale = min(displayW/previewW, displayH/previewH) → behoudt verhoudingen
+        const previewW = displayState?._frameWidth || 670;
+        const previewH = displayState?._frameHeight || 370;
+        const scaleW = window.innerWidth / previewW;
+        const scaleH = window.innerHeight / previewH;
+        const scale = Math.min(scaleW, scaleH);
+
         if (n === 1) {
           const w = activeWorkouts[0];
           const zoom = (s.blokZoom?.[w.id] || 100) / 100;
-          const fs = (zoom * 2).toFixed(2) + 'vw';
-          const ts = (zoom * 3).toFixed(2) + 'vw';
+          const fs = Math.round(zoom * 15 * scale) + 'px';
+          const ts = Math.round(zoom * 20 * scale) + 'px';
           const body = (w.attributes.description || '').replace(/\n/g,'<br>');
           contentHtml = `<div class="tv-content"><div class="tv-blok"><div class="tv-blok-center" style="text-align:${globalAlign};">
             <div class="tv-blok-title" style="color:${accent};font-size:${ts};">${w.attributes.title}</div>
@@ -1120,15 +1129,15 @@ function init() {
           </div></div></div>`;
         } else {
           const cols = n === 2 ? 2 : n === 4 ? 2 : 3;
-          const baseFsVw = cols === 2 ? 1.4 : 1.05;
-          const baseTsVw = cols === 2 ? 2.1 : 1.6;
+          const baseFs = cols === 2 ? 13 : 11;
+          const baseTs = cols === 2 ? 16 : 13;
           const contentStyle = n === 4
             ? 'display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:100%;'
             : 'display:flex;';
           const bloksHtml = activeWorkouts.map(w => {
             const zoom = (s.blokZoom?.[w.id] || 100) / 100;
-            const fs = (zoom * baseFsVw).toFixed(2) + 'vw';
-            const ts = (zoom * baseTsVw).toFixed(2) + 'vw';
+            const fs = Math.round(zoom * baseFs * scale) + 'px';
+            const ts = Math.round(zoom * baseTs * scale) + 'px';
             const body = (w.attributes.description || '').replace(/\n/g,'<br>');
             return `<div class="tv-blok" style="text-align:${globalAlign};">
               <div class="tv-blok-title" style="color:${accent};font-size:${ts};">${w.attributes.title}</div>
@@ -1168,6 +1177,10 @@ function init() {
       if (e.data.type === 'stateUpdate') {
         hasContent = true;
         displayState = e.data.state;
+        if (displayState) {
+          displayState._frameWidth = e.data.frameWidth || 670;
+          displayState._frameHeight = e.data.frameHeight || 370;
+        }
         globalAlign = e.data.globalAlign || globalAlign;
         sharedAnnouncements = e.data.announcements || [];
         displayScrollPositions = e.data.scrollPositions || [];
