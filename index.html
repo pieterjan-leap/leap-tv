@@ -923,9 +923,9 @@ function renderPreview(zaalNum) {
   broadcastFrame(zaalNum);
 
   // Scroll listeners op preview blokken
-  const frame = document.getElementById('tvFrame' + zaalNum);
-  if (frame) {
-    frame.querySelectorAll('.tv-blok').forEach(blok => {
+  const scrollFrame = document.getElementById('tvFrame' + zaalNum);
+  if (scrollFrame) {
+    scrollFrame.querySelectorAll('.tv-blok').forEach(blok => {
       blok.addEventListener('scroll', () => broadcastScroll(zaalNum), { passive: true });
     });
   }
