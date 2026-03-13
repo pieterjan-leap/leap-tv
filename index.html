@@ -1107,12 +1107,12 @@ function init() {
       } else {
         const n = activeWorkouts.length;
         // Gebruik viewport hoogte als basis voor font sizing
-        const vhBase = window.innerHeight / 900; // 900 = referentie hoogte
+        // Font sizing via vw — schaalt automatisch mee met elk schermformaat
         if (n === 1) {
           const w = activeWorkouts[0];
           const zoom = (s.blokZoom?.[w.id] || 100) / 100;
-          const fs = Math.round(zoom * 26 * vhBase) + 'px';
-          const ts = Math.round(zoom * 38 * vhBase) + 'px';
+          const fs = (zoom * 2).toFixed(2) + 'vw';
+          const ts = (zoom * 3).toFixed(2) + 'vw';
           const body = (w.attributes.description || '').replace(/\n/g,'<br>');
           contentHtml = `<div class="tv-content"><div class="tv-blok"><div class="tv-blok-center" style="text-align:${globalAlign};">
             <div class="tv-blok-title" style="color:${accent};font-size:${ts};">${w.attributes.title}</div>
@@ -1120,15 +1120,15 @@ function init() {
           </div></div></div>`;
         } else {
           const cols = n === 2 ? 2 : n === 4 ? 2 : 3;
-          const baseFs = Math.round((cols === 2 ? 22 : 16) * vhBase);
-          const baseTs = Math.round((cols === 2 ? 30 : 22) * vhBase);
+          const baseFsVw = cols === 2 ? 1.4 : 1.05;
+          const baseTsVw = cols === 2 ? 2.1 : 1.6;
           const contentStyle = n === 4
             ? 'display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:100%;'
             : 'display:flex;';
           const bloksHtml = activeWorkouts.map(w => {
             const zoom = (s.blokZoom?.[w.id] || 100) / 100;
-            const fs = Math.round(zoom * baseFs) + 'px';
-            const ts = Math.round(zoom * baseTs) + 'px';
+            const fs = (zoom * baseFsVw).toFixed(2) + 'vw';
+            const ts = (zoom * baseTsVw).toFixed(2) + 'vw';
             const body = (w.attributes.description || '').replace(/\n/g,'<br>');
             return `<div class="tv-blok" style="text-align:${globalAlign};">
               <div class="tv-blok-title" style="color:${accent};font-size:${ts};">${w.attributes.title}</div>
