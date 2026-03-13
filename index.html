@@ -919,10 +919,8 @@ function renderPreview(zaalNum) {
 
   updateClock();
 
-  // Broadcast naar display tabs
-  if (state[zaalNum].activeBloks.length > 0) {
-    broadcastFrame(zaalNum);
-  }
+  // Broadcast naar display tabs — altijd, ook als geen blokken geselecteerd
+  broadcastFrame(zaalNum);
 
   // Scroll listeners op preview blokken
   const frame = document.getElementById('tvFrame' + zaalNum);
@@ -1125,10 +1123,21 @@ function init() {
       }
     }
 
-    // Vraag controller om huidige state te broadcasten
+    // Blijf requestState sturen totdat controller antwoordt
+    let hasContent = false;
+    const origOnMessage = (e) => {
+      if (e.data.zaal === zaal && (e.data.type === 'frameUpdate' || e.data.type === 'scrollUpdate')) {
+        hasContent = true;
+      }
+    };
+    bc.addEventListener('message', origOnMessage);
+
+    const pollInterval = setInterval(() => {
+      if (!hasContent) bc.postMessage({ type: 'requestState', zaal });
+    }, 1000);
     bc.postMessage({ type: 'requestState', zaal });
 
-    // Eigen klok-interval — onafhankelijk van BC
+    // Eigen klok-interval
     setInterval(() => {
       const now = new Date();
       const t = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
