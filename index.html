@@ -926,7 +926,7 @@ function renderPreview(zaalNum) {
 
 function broadcastFrame(zaalNum) {
   const frame = document.getElementById('tvFrame' + zaalNum);
-  const scrollPositions = frame ? [...frame.querySelectorAll('.tv-blok')].map(b => b.scrollTop) : [];
+  const scrollPositions = frame ? [...frame.querySelectorAll('.tv-blok')].map(b => b.scrollHeight > b.clientHeight ? b.scrollTop / (b.scrollHeight - b.clientHeight) : 0) : [];
   const frameWidth = frame ? frame.offsetWidth : 670;
   const frameHeight = frame ? frame.offsetHeight : 370;
   bc.postMessage({ type: 'stateUpdate', zaal: zaalNum, state: state[zaalNum], globalAlign, announcements: sharedAnnouncements, scrollPositions, frameWidth, frameHeight });
@@ -935,7 +935,7 @@ function broadcastFrame(zaalNum) {
 function broadcastScroll(zaalNum) {
   const frame = document.getElementById('tvFrame' + zaalNum);
   if (!frame) return;
-  const scrollPositions = [...frame.querySelectorAll('.tv-blok')].map(b => b.scrollTop);
+  const scrollPositions = [...frame.querySelectorAll('.tv-blok')].map(b => b.scrollHeight > b.clientHeight ? b.scrollTop / (b.scrollHeight - b.clientHeight) : 0);
   bc.postMessage({ type: 'scrollUpdate', zaal: zaalNum, scrollPositions });
 }
 
@@ -1161,14 +1161,30 @@ function init() {
         <div class="tv-bottombar">${buildTicker ? buildTicker(accent) : ''}</div>
       `;
 
-      // Herstel scroll posities
+      // Herstel scroll posities via percentage
       if (displayScrollPositions.length) {
         const blokken = di.querySelectorAll('.tv-blok');
-        displayScrollPositions.forEach((pos, i) => { if (blokken[i]) blokken[i].scrollTop = pos; });
+        displayScrollPositions.forEach((pct, i) => {
+          if (blokken[i]) {
+            const maxScroll = blokken[i].scrollHeight - blokken[i].clientHeight;
+            blokken[i].scrollTop = pct * maxScroll;
+          }
+        });
       }
     }
 
     window.addEventListener('resize', () => renderDisplay());
+
+    // Scroll op display: broadcast percentage terug zodat controller + andere displays in sync zijn
+    document.addEventListener('scroll', (e) => {
+      const blok = e.target.closest && e.target.closest('.tv-blok');
+      if (!blok) return;
+      const blokken = [...document.querySelectorAll('#displayInner .tv-blok')];
+      const scrollPositions = blokken.map(b =>
+        b.scrollHeight > b.clientHeight ? b.scrollTop / (b.scrollHeight - b.clientHeight) : 0
+      );
+      bc.postMessage({ type: 'scrollUpdate', zaal, scrollPositions });
+    }, { capture: true, passive: true });
 
     // BC handler voor display tab
     let hasContent = false;
@@ -1188,7 +1204,12 @@ function init() {
       } else if (e.data.type === 'scrollUpdate') {
         displayScrollPositions = e.data.scrollPositions;
         const blokken = document.querySelectorAll('#displayInner .tv-blok');
-        displayScrollPositions.forEach((pos, i) => { if (blokken[i]) blokken[i].scrollTop = pos; });
+        displayScrollPositions.forEach((pct, i) => {
+          if (blokken[i]) {
+            const maxScroll = blokken[i].scrollHeight - blokken[i].clientHeight;
+            blokken[i].scrollTop = pct * maxScroll;
+          }
+        });
       }
     };
 
