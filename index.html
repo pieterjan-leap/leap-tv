@@ -1093,21 +1093,38 @@ function init() {
       if (e.data.type === 'frameUpdate') {
         applyFrameToDisplay(e.data.html, e.data.frameW, e.data.frameH, e.data.scrollPositions);
       } else if (e.data.type === 'scrollUpdate') {
+        // Update lastFrame zodat resize ook de juiste scroll positie behoudt
+        if (lastFrame) lastFrame.scrollPositions = e.data.scrollPositions;
         const blokken = document.querySelectorAll('#scaleWrap .tv-blok');
         e.data.scrollPositions.forEach((pos, i) => { if (blokken[i]) blokken[i].scrollTop = pos; });
       }
     };
 
+    // Sla laatste frame op voor resize
+    let lastFrame = null;
+
     function applyFrameToDisplay(html, srcW, srcH, scrollPositions) {
+      lastFrame = { html, srcW, srcH, scrollPositions };
+      renderFrame();
+    }
+
+    function renderFrame() {
+      if (!lastFrame) return;
+      const { html, srcW, srcH, scrollPositions } = lastFrame;
       const di = document.getElementById('displayInner');
-      const scaleX = window.innerWidth / srcW;
-      const scaleY = window.innerHeight / srcH;
-      const scale = Math.min(scaleX, scaleY);
+      // Gebruik screen.width/height voor TV schermen (ook als venster kleiner is)
+      const availW = window.innerWidth;
+      const availH = window.innerHeight;
+      const scale = Math.min(availW / srcW, availH / srcH);
+      // Centreer de scaleWrap
+      const offsetX = Math.round((availW - srcW * scale) / 2);
+      const offsetY = Math.round((availH - srcH * scale) / 2);
       di.innerHTML = `<div id="scaleWrap" style="
         width:${srcW}px; height:${srcH}px;
         transform-origin: top left;
         transform: scale(${scale});
-        position:absolute; top:0; left:0;
+        position:absolute;
+        top:${offsetY}px; left:${offsetX}px;
       ">${html}</div>`;
       // Herstel scroll posities
       if (scrollPositions) {
@@ -1115,6 +1132,9 @@ function init() {
         scrollPositions.forEach((pos, i) => { if (blokken[i]) blokken[i].scrollTop = pos; });
       }
     }
+
+    // Herbereken scale bij resize (bv. extern scherm of fullscreen)
+    window.addEventListener('resize', () => renderFrame());
 
     // Blijf requestState sturen totdat controller antwoordt
     let hasContent = false;
