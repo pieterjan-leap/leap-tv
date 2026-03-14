@@ -210,26 +210,55 @@ body { background:#0a1214; color:var(--white); font-family:var(--mono); min-heig
 
 /* ─── TV DISPLAY ELEMENTS ─── */
 .tv-topbar {
-  height:52px; background:#0a0e10; border-bottom:2px solid var(--orange);
-  display:flex; align-items:center; padding:0 12px; gap:10px; flex-shrink:0;
+  background:#0a0e10; border-bottom:2px solid var(--orange);
+  display:flex; flex-direction:column; flex-shrink:0;
 }
+.tv-topbar-row1 {
+  height:46px; display:flex; align-items:center;
+  padding:0 16px; gap:12px; flex-shrink:0;
+}
+.tv-topbar-row2 {
+  min-height:44px; display:flex; align-items:center;
+  border-top:1px solid rgba(255,255,255,0.07);
+  padding:0; overflow:hidden; flex-shrink:0;
+}
+.tv-ann-label {
+  font-family:var(--mono); font-size:9px; letter-spacing:3px;
+  color:var(--dark); background:var(--orange);
+  height:100%; min-height:44px; display:flex; align-items:center;
+  padding:0 16px; flex-shrink:0;
+}
+.tv-ann-content {
+  flex:1; overflow:hidden; display:flex; align-items:center; padding:0 20px;
+}
+.tv-ann-text {
+  font-family:var(--disp); font-weight:600; font-size:18px;
+  letter-spacing:0.5px; color:var(--white);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.tv-ann-text-scroll {
+  display:flex; align-items:center; white-space:nowrap;
+  animation:ticker-scroll linear infinite;
+  font-family:var(--disp); font-weight:600; font-size:18px; color:var(--white);
+}
+.tv-ann-sep { color:var(--orange); padding:0 28px; font-size:20px; }
 .tv-logo-box {
-  width:24px; height:24px; background:var(--orange);
+  width:28px; height:28px; background:var(--orange);
   display:flex; align-items:center; justify-content:center;
-  font-family:var(--disp); font-weight:900; font-size:14px; color:var(--dark); flex-shrink:0;
+  font-family:var(--disp); font-weight:900; font-size:16px; color:var(--dark); flex-shrink:0;
 }
-.tv-logo-text { font-family:var(--disp); font-weight:900; font-size:16px; letter-spacing:2px; flex-shrink:0; }
+.tv-logo-text { font-family:var(--disp); font-weight:900; font-size:18px; letter-spacing:2px; flex-shrink:0; }
 .tv-logo-text span { color:var(--orange); }
 .tv-track-badge {
-  font-family:var(--mono); font-size:9px; letter-spacing:2px;
-  padding:2px 8px; border:1px solid; flex-shrink:0;
+  font-family:var(--mono); font-size:10px; letter-spacing:2px;
+  padding:3px 10px; border:1px solid; flex-shrink:0;
 }
 .tv-date-badge {
   font-size:9px; color:var(--muted); letter-spacing:1px; flex-shrink:0;
 }
 .tv-clock {
-  margin-left:auto; font-family:var(--mono); font-size:14px; font-weight:700;
-  letter-spacing:2px; flex-shrink:0;
+  margin-left:auto; font-family:var(--mono); font-size:18px; font-weight:700;
+  letter-spacing:3px; flex-shrink:0;
 }
 .tv-content {
   /* neemt alle resterende hoogte, nooit groter dan de frame */
@@ -249,7 +278,7 @@ body { background:#0a1214; color:var(--white); font-family:var(--mono); min-heig
    centreert wanneer content past; de parent scrollt als het overloopt */
 .tv-blok-center {
   min-height:100%; width:100%;
-  display:flex; flex-direction:column; justify-content:center;
+  display:flex; flex-direction:column; justify-content:flex-start;
 }
 .tv-blok-title {
   font-family:var(--disp); font-weight:900;
@@ -824,25 +853,25 @@ function removeAnnounce(idx) {
 // TICKER HTML
 // ═══════════════════════════════════════════════
 function buildTicker(accentColor) {
+  // Legacy: kleine preview bottombar in controller
   const a = sharedAnnouncements;
-  if (a.length === 0) return `
-    <div class="tv-ticker-label" style="background:${accentColor}">LEAPHASSELT.BE</div>
-    <div class="tv-ticker-track">
-      <div class="tv-ticker-static" style="color:var(--muted);font-size:10px;letter-spacing:2px;">SCHEEPVAARTKAAI 16/1 · HASSELT · TAKE THE LEAP!</div>
-    </div>`;
-  if (a.length === 1) return `
-    <div class="tv-ticker-label" style="background:${accentColor}">AANKONDIGING</div>
-    <div class="tv-ticker-track">
-      <div class="tv-ticker-static">${a[0]}</div>
-    </div>`;
-  const items = [...a,...a].map(msg => `
-    <span class="tv-ticker-item"><span class="tv-ticker-sep">▸</span>${msg}</span>`).join('');
+  if (a.length === 0) return `<div class="tv-ticker-label" style="background:${accentColor}">LEAPHASSELT.BE</div><div class="tv-ticker-track"><div class="tv-ticker-static" style="color:var(--muted);font-size:9px;letter-spacing:2px;">SCHEEPVAARTKAAI 16/1 · HASSELT · TAKE THE LEAP!</div></div>`;
+  if (a.length === 1) return `<div class="tv-ticker-label" style="background:${accentColor}">AANKONDIGING</div><div class="tv-ticker-track"><div class="tv-ticker-static">${a[0]}</div></div>`;
+  const items = [...a,...a].map(msg => `<span class="tv-ticker-item"><span class="tv-ticker-sep">▸</span>${msg}</span>`).join('');
   const dur = Math.max(12, a.join('').length * 0.22);
-  return `
-    <div class="tv-ticker-label" style="background:${accentColor}">AANKONDIGINGEN</div>
-    <div class="tv-ticker-track">
-      <div class="tv-ticker-scroll" style="animation-duration:${dur}s">${items}</div>
-    </div>`;
+  return `<div class="tv-ticker-label" style="background:${accentColor}">AANKONDIGINGEN</div><div class="tv-ticker-track"><div class="tv-ticker-scroll" style="animation-duration:${dur}s">${items}</div></div>`;
+}
+
+function buildAnnBar(accentColor) {
+  // Prominente aankondigingenbalk in topbar row 2
+  const a = sharedAnnouncements;
+  if (a.length === 0) return '';
+  if (a.length === 1) {
+    return `<div class="tv-ann-label" style="background:${accentColor}">AANKONDIGING</div><div class="tv-ann-content"><div class="tv-ann-text">${a[0]}</div></div>`;
+  }
+  const items = [...a,...a].map(msg => `<span class="tv-ann-item">${msg}</span><span class="tv-ann-sep">▸</span>`).join('');
+  const dur = Math.max(20, a.join(' ').length / 7);
+  return `<div class="tv-ann-label" style="background:${accentColor}">AANKONDIGINGEN</div><div class="tv-ann-content"><div class="tv-ann-text-scroll" style="animation-duration:${dur}s">${items}</div></div>`;
 }
 
 // ═══════════════════════════════════════════════
@@ -907,14 +936,16 @@ function renderPreview(zaalNum) {
 
   frame.innerHTML = `
     <div class="tv-topbar" style="border-bottom-color:${accent}">
-      <div class="tv-logo-box" style="background:${accent}">L</div>
-      <div class="tv-logo-text">LEAP<span style="color:${accent}">.</span></div>
-      <div class="tv-track-badge" style="color:${accent};border-color:${accent}40">${trackName}</div>
-      <div class="tv-date-badge">${isToday(s.date) ? '' : dateStr}</div>
-      ${s.showClock ? `<div class="tv-clock" style="color:${accent}">00:00</div>` : ''}
+      <div class="tv-topbar-row1">
+        <div class="tv-logo-box" style="background:${accent}">L</div>
+        <div class="tv-logo-text">LEAP<span style="color:${accent}">.</span></div>
+        <div class="tv-track-badge" style="color:${accent};border-color:${accent}40">${trackName}</div>
+        <div class="tv-date-badge">${isToday(s.date) ? '' : dateStr}</div>
+        ${s.showClock ? `<div class="tv-clock" style="color:${accent}">00:00</div>` : ''}
+      </div>
+      ${sharedAnnouncements.length > 0 ? `<div class="tv-topbar-row2">${buildAnnBar(accent)}</div>` : ''}
     </div>
     ${contentHtml}
-    <div class="tv-bottombar">${buildTicker(accent)}</div>
   `;
 
   updateClock();
@@ -1014,16 +1045,22 @@ function renderDisplayFull() {
     contentHtml = `<div class="tv-content" style="${contentStyle}">${bloksHtml}</div>`;
   }
 
+  const annBarFull = sharedAnnouncements.length > 0
+    ? `<div class="tv-topbar-row2">${buildAnnBar(accent)}</div>`
+    : '';
+
   document.getElementById('displayInner').innerHTML = `
-    <div style="height:56px;background:var(--dark);border-bottom:3px solid ${accent};display:flex;align-items:center;padding:0 24px;gap:14px;flex-shrink:0;">
-      <div style="width:36px;height:36px;background:${accent};display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:900;font-size:22px;color:var(--dark);">L</div>
-      <div style="font-family:var(--disp);font-weight:900;font-size:26px;letter-spacing:3px;">LEAP<span style="color:${accent}">.</span></div>
-      <div style="font-size:11px;letter-spacing:3px;padding:3px 12px;border:1px solid ${accent}40;color:${accent};">${trackName}</div>
-      ${!isToday(s.date) ? `<div style="font-size:10px;color:var(--muted);letter-spacing:1px;">${dateStr}</div>` : ''}
-      ${s.showClock ? `<div class="tv-clock" style="color:${accent};margin-left:auto;font-size:22px;">${new Date().getHours().toString().padStart(2,'0')}:${new Date().getMinutes().toString().padStart(2,'0')}</div>` : ''}
+    <div class="tv-topbar" style="border-bottom-color:${accent}">
+      <div class="tv-topbar-row1">
+        <div style="width:36px;height:36px;background:${accent};display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:900;font-size:22px;color:var(--dark);">L</div>
+        <div style="font-family:var(--disp);font-weight:900;font-size:26px;letter-spacing:3px;">LEAP<span style="color:${accent}">.</span></div>
+        <div style="font-size:11px;letter-spacing:3px;padding:3px 12px;border:1px solid ${accent}40;color:${accent};">${trackName}</div>
+        ${!isToday(s.date) ? `<div style="font-size:10px;color:var(--muted);letter-spacing:1px;">${dateStr}</div>` : ''}
+        ${s.showClock ? `<div class="tv-clock" style="color:${accent};margin-left:auto;font-size:22px;">${new Date().getHours().toString().padStart(2,'0')}:${new Date().getMinutes().toString().padStart(2,'0')}</div>` : ''}
+      </div>
+      ${annBarFull}
     </div>
     ${contentHtml}
-    <div class="tv-bottombar" style="height:44px;">${buildTicker(accent)}</div>
   `;
 
   // Auto-fill: zoom elke blok omhoog zodat content de beschikbare hoogte vult
@@ -1151,15 +1188,20 @@ function init() {
 
       const now = new Date();
       const clockStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+      const annBarHtml = sharedAnnouncements.length > 0
+        ? `<div class="tv-topbar-row2">${buildAnnBar(accent)}</div>`
+        : '';
       di.innerHTML = `
         <div class="tv-topbar" style="border-bottom-color:${accent}">
-          <div class="tv-logo-box" style="background:${accent}">L</div>
-          <div class="tv-logo-text">LEAP<span style="color:${accent}">.</span></div>
-          <div class="tv-track-badge" style="color:${accent};border-color:${accent}40">${trackName}</div>
-          ${s.showClock ? `<div class="tv-clock" style="color:${accent}">${clockStr}</div>` : ''}
+          <div class="tv-topbar-row1">
+            <div class="tv-logo-box" style="background:${accent}">L</div>
+            <div class="tv-logo-text">LEAP<span style="color:${accent}">.</span></div>
+            <div class="tv-track-badge" style="color:${accent};border-color:${accent}40">${trackName}</div>
+            ${s.showClock ? `<div class="tv-clock" style="color:${accent}">${clockStr}</div>` : ''}
+          </div>
+          ${annBarHtml}
         </div>
         ${contentHtml}
-        <div class="tv-bottombar">${buildTicker ? buildTicker(accent) : ''}</div>
       `;
 
       // Herstel scroll posities via percentage
