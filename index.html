@@ -210,38 +210,30 @@ body { background:#0a1214; color:var(--white); font-family:var(--mono); min-heig
 
 /* ─── TV DISPLAY ELEMENTS ─── */
 .tv-topbar {
-  background:#0a0e10; border-bottom:2px solid var(--orange);
-  display:flex; flex-direction:column; flex-shrink:0;
-}
-.tv-topbar-row1 {
-  height:46px; display:flex; align-items:center;
+  height:50px; background:#0a0e10; border-bottom:2px solid var(--orange);
+  display:flex; align-items:center;
   padding:0 16px; gap:12px; flex-shrink:0;
 }
-.tv-topbar-row2 {
-  min-height:44px; display:flex; align-items:center;
-  border-top:1px solid rgba(255,255,255,0.07);
-  padding:0; overflow:hidden; flex-shrink:0;
+/* row1 = de topbar zelf, geen wrapper nodig meer */
+.tv-topbar-row1 {
+  display:contents; /* transparant — children worden direct kinderen van topbar */
 }
-.tv-ann-label {
-  font-family:var(--mono); font-size:9px; letter-spacing:3px;
-  color:var(--dark); background:var(--orange);
-  height:100%; min-height:44px; display:flex; align-items:center;
-  padding:0 16px; flex-shrink:0;
-}
-.tv-ann-content {
-  flex:1; overflow:hidden; display:flex; align-items:center; padding:0 20px;
+/* aankondiging: inline in row1, tussen track-badge en clock */
+.tv-ann-inline {
+  flex:1; overflow:hidden; display:flex; align-items:center;
+  min-width:0; padding:0 8px;
 }
 .tv-ann-text {
-  font-family:var(--disp); font-weight:600; font-size:18px;
+  font-family:var(--disp); font-weight:700; font-size:22px;
   letter-spacing:0.5px; color:var(--white);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .tv-ann-text-scroll {
-  display:flex; align-items:center; white-space:nowrap;
+  display:inline-flex; align-items:center; white-space:nowrap;
   animation:ticker-scroll linear infinite;
-  font-family:var(--disp); font-weight:600; font-size:18px; color:var(--white);
+  font-family:var(--disp); font-weight:700; font-size:22px; color:var(--white);
 }
-.tv-ann-sep { color:var(--orange); padding:0 28px; font-size:20px; }
+.tv-ann-sep { color:var(--orange); padding:0 24px; font-size:20px; }
 .tv-logo-box {
   width:28px; height:28px; background:var(--orange);
   display:flex; align-items:center; justify-content:center;
@@ -863,15 +855,15 @@ function buildTicker(accentColor) {
 }
 
 function buildAnnBar(accentColor) {
-  // Prominente aankondigingenbalk in topbar row 2
+  // Inline aankondiging: leeft in row1 tussen track-badge en clock
   const a = sharedAnnouncements;
   if (a.length === 0) return '';
   if (a.length === 1) {
-    return `<div class="tv-ann-label" style="background:${accentColor}">AANKONDIGING</div><div class="tv-ann-content"><div class="tv-ann-text">${a[0]}</div></div>`;
+    return `<div class="tv-ann-inline"><div class="tv-ann-text">${a[0]}</div></div>`;
   }
-  const items = [...a,...a].map(msg => `<span class="tv-ann-item">${msg}</span><span class="tv-ann-sep">▸</span>`).join('');
+  const items = [...a,...a].map(msg => `<span>${msg}</span><span class="tv-ann-sep">▸</span>`).join('');
   const dur = Math.max(20, a.join(' ').length / 7);
-  return `<div class="tv-ann-label" style="background:${accentColor}">AANKONDIGINGEN</div><div class="tv-ann-content"><div class="tv-ann-text-scroll" style="animation-duration:${dur}s">${items}</div></div>`;
+  return `<div class="tv-ann-inline"><div class="tv-ann-text-scroll" style="animation-duration:${dur}s">${items}</div></div>`;
 }
 
 // ═══════════════════════════════════════════════
@@ -943,7 +935,7 @@ function renderPreview(zaalNum) {
         <div class="tv-date-badge">${isToday(s.date) ? '' : dateStr}</div>
         ${s.showClock ? `<div class="tv-clock" style="color:${accent}">00:00</div>` : ''}
       </div>
-      ${sharedAnnouncements.length > 0 ? `<div class="tv-topbar-row2">${buildAnnBar(accent)}</div>` : ''}
+      ${buildAnnBar(accent)}
     </div>
     ${contentHtml}
   `;
@@ -1045,9 +1037,7 @@ function renderDisplayFull() {
     contentHtml = `<div class="tv-content" style="${contentStyle}">${bloksHtml}</div>`;
   }
 
-  const annBarFull = sharedAnnouncements.length > 0
-    ? `<div class="tv-topbar-row2">${buildAnnBar(accent)}</div>`
-    : '';
+  // annBar wordt inline gebouwd via buildAnnBar()
 
   document.getElementById('displayInner').innerHTML = `
     <div class="tv-topbar" style="border-bottom-color:${accent}">
@@ -1058,7 +1048,7 @@ function renderDisplayFull() {
         ${!isToday(s.date) ? `<div style="font-size:10px;color:var(--muted);letter-spacing:1px;">${dateStr}</div>` : ''}
         ${s.showClock ? `<div class="tv-clock" style="color:${accent};margin-left:auto;font-size:22px;">${new Date().getHours().toString().padStart(2,'0')}:${new Date().getMinutes().toString().padStart(2,'0')}</div>` : ''}
       </div>
-      ${annBarFull}
+      ${buildAnnBar(accent)}
     </div>
     ${contentHtml}
   `;
@@ -1188,9 +1178,7 @@ function init() {
 
       const now = new Date();
       const clockStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-      const annBarHtml = sharedAnnouncements.length > 0
-        ? `<div class="tv-topbar-row2">${buildAnnBar(accent)}</div>`
-        : '';
+      // annBar wordt inline gebouwd via buildAnnBar()
       di.innerHTML = `
         <div class="tv-topbar" style="border-bottom-color:${accent}">
           <div class="tv-topbar-row1">
@@ -1199,7 +1187,7 @@ function init() {
             <div class="tv-track-badge" style="color:${accent};border-color:${accent}40">${trackName}</div>
             ${s.showClock ? `<div class="tv-clock" style="color:${accent}">${clockStr}</div>` : ''}
           </div>
-          ${annBarHtml}
+          ${buildAnnBar(accent)}
         </div>
         ${contentHtml}
       `;
