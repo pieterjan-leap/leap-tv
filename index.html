@@ -513,6 +513,10 @@ const API_BASE = 'https://api.sugarwod.com/v2';
 // Bij lokaal testen valt dit terug op directe fetch (werkt niet door CORS)
 const USE_PROXY = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && window.location.hostname !== '';
 
+// Supabase — voor historische workouts (gesync'd door VPS cron)
+const SUPABASE_URL  = 'https://yunbzsboqgldhoddpfjx.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1bmJ6c2JvcWdsZGhvZGRwZmp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1Mjk3NjEsImV4cCI6MjA4ODEwNTc2MX0.7YSoEUUWpKU8K2asL_KExcnfd3PpyAKlG0Oe6uE9wlU';
+
 // ═══════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════
@@ -578,6 +582,27 @@ async function apiFetch(path) {
   return res.json();
 }
 
+async function fetchSupabaseWorkouts(dateIso) {
+  const url = `${SUPABASE_URL}/rest/v1/workouts?datum=eq.${dateIso}&select=*&order=volgorde.asc`;
+  const res = await fetch(url, { headers: { 'apikey': SUPABASE_ANON } });
+  if (!res.ok) throw new Error(`Supabase error ${res.status}`);
+  const rows = await res.json();
+  // Omzetten naar SugarWOD-compatibele structuur
+  return { data: rows.map(r => ({
+    type: 'workouts',
+    id: r.id,
+    attributes: {
+      title: r.titel,
+      description: r.omschrijving,
+      score_type: r.score_type,
+      display_order: r.volgorde,
+      scheduled_date: r.datum + 'T00:00:00.000Z',
+      scheduled_date_int: parseInt(r.datum.replace(/-/g, '')),
+      track: { id: r.track_id, type: 'tracks', attributes_for: { name: r.track_naam } },
+    }
+  })) };
+}
+
 async function loadWorkouts(zaalNum) {
   const s = state[zaalNum];
   const dateInt = fmtDateInt(s.date);
@@ -587,7 +612,10 @@ async function loadWorkouts(zaalNum) {
     `<div class="blok-loading"><div class="spinner"></div>WODs laden...</div>`;
 
   try {
-    const data = await apiFetch(`/v2/workouts?scheduled_date=${dateInt}`);
+    // Vandaag → live SugarWOD API, verleden → Supabase cache
+    const data = isToday(s.date)
+      ? await apiFetch(`/v2/workouts?scheduled_date=${dateInt}`)
+      : await fetchSupabaseWorkouts(s.date);
     const workouts = (data.data || []).sort((a,b) => a.attributes.display_order - b.attributes.display_order);
 
     s.workouts = workouts;
