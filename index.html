@@ -210,7 +210,7 @@ body { background:#0a1214; color:var(--white); font-family:var(--mono); min-heig
 
 /* ─── TV DISPLAY ELEMENTS ─── */
 .tv-topbar {
-  height:40px; background:var(--dark); border-bottom:2px solid var(--orange);
+  height:52px; background:#0a0e10; border-bottom:2px solid var(--orange);
   display:flex; align-items:center; padding:0 12px; gap:10px; flex-shrink:0;
 }
 .tv-logo-box {
@@ -240,7 +240,7 @@ body { background:#0a1214; color:var(--white); font-family:var(--mono); min-heig
   /* elke blok vult zijn cel, scrollt intern, groeit nooit buiten cel */
   flex:1; min-height:0; min-width:0;
   display:flex; flex-direction:column;
-  padding:10px 14px;
+  padding:28px 36px;
   overflow-y:auto; overflow-x:hidden;
   scrollbar-width:thin; scrollbar-color:rgba(255,91,53,0.25) transparent;
 }
@@ -253,19 +253,19 @@ body { background:#0a1214; color:var(--white); font-family:var(--mono); min-heig
 }
 .tv-blok-title {
   font-family:var(--disp); font-weight:900;
-  letter-spacing:1px; line-height:1; padding-bottom:6px;
-  border-bottom:1px solid rgba(255,91,53,0.2); flex-shrink:0; margin-bottom:6px;
+  letter-spacing:1px; line-height:1; padding-bottom:10px;
+  border-bottom:1px solid rgba(255,91,53,0.3); flex-shrink:0; margin-bottom:12px;
 }
 .tv-blok-body {
   font-family:var(--disp); font-weight:400;
-  line-height:1.5; color:var(--white);
+  line-height:1.65; color:rgba(255,255,255,0.92);
 }
 .tv-blok-body strong { font-weight:700; }
 
 /* Ticker */
 .tv-bottombar {
-  height:36px; background:var(--dark);
-  border-top:2px solid rgba(255,91,53,0.2);
+  height:40px; background:#0a0e10;
+  border-top:2px solid rgba(255,91,53,0.35);
   display:flex; align-items:center; flex-shrink:0; overflow:hidden;
 }
 .tv-ticker-label {
@@ -293,7 +293,7 @@ body { background:#0a1214; color:var(--white); font-family:var(--mono); min-heig
 
 /* ─── DISPLAY PAGE (fullscreen cast) ─── */
 #page-display {
-  background:var(--dark3);
+  background:#0a0e10;
   position:fixed; inset:0; z-index:200;
   display:none; flex-direction:column;
   height:100vh; width:100vw;
@@ -1090,6 +1090,7 @@ function init() {
 
     // Declareer state VOOR gebruik
     let displayState = null;
+    let globalAlign = 'left'; // display start altijd links; controller overschrijft via BC
     let displayScrollPositions = [];
 
     function renderDisplay() {
@@ -1120,8 +1121,8 @@ function init() {
         if (n === 1) {
           const w = activeWorkouts[0];
           const zoom = (s.blokZoom?.[w.id] || 100) / 100;
-          const fs = Math.round(zoom * 15 * scale) + 'px';
-          const ts = Math.round(zoom * 20 * scale) + 'px';
+          const fs = Math.round(zoom * 19 * scale) + 'px';
+          const ts = Math.round(zoom * 26 * scale) + 'px';
           const body = (w.attributes.description || '').replace(/\n/g,'<br>');
           contentHtml = `<div class="tv-content"><div class="tv-blok"><div class="tv-blok-center" style="text-align:${globalAlign};">
             <div class="tv-blok-title" style="color:${accent};font-size:${ts};">${w.attributes.title}</div>
@@ -1129,8 +1130,8 @@ function init() {
           </div></div></div>`;
         } else {
           const cols = n === 2 ? 2 : n === 4 ? 2 : 3;
-          const baseFs = cols === 2 ? 13 : 11;
-          const baseTs = cols === 2 ? 16 : 13;
+          const baseFs = cols === 2 ? 17 : 14;
+          const baseTs = cols === 2 ? 21 : 17;
           const contentStyle = n === 4
             ? 'display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:100%;'
             : 'display:flex;';
