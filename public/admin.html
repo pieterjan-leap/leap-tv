@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LEAP TV Admin</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0c181c;
+      color: #ddd5c8;
+      font-family: 'Space Mono', monospace;
+      min-height: 100vh;
+      font-size: 13px;
+    }
+
+    .top-bar {
+      background: #152024;
+      border-bottom: 2px solid #ff5b35;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .top-bar .logo { font-size: 20px; font-weight: 700; color: #ff5b35; letter-spacing: 0.22em; }
+    .top-bar .sub { font-size: 10px; color: #3a5a63; letter-spacing: 0.15em; text-transform: uppercase; margin-top: 2px; }
+    .top-bar a { color: #8dadb3; text-decoration: none; font-size: 11px; }
+    .top-bar a:hover { color: #ff5b35; }
+
+    .tabs {
+      display: flex;
+      gap: 0;
+      background: #152024;
+      border-bottom: 1px solid rgba(74,110,119,0.2);
+      padding: 0 24px;
+    }
+    .tab {
+      padding: 12px 20px;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #3a5a63;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all 0.15s;
+    }
+    .tab:hover { color: #ddd5c8; }
+    .tab.active { color: #ff5b35; border-bottom-color: #ff5b35; }
+
+    .container { max-width: 960px; margin: 0 auto; padding: 24px; }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .card {
+      background: #152024;
+      border: 1px solid rgba(74,110,119,0.15);
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .card .info { flex: 1; min-width: 0; }
+    .card .info .title { font-weight: 700; margin-bottom: 4px; word-break: break-word; }
+    .card .info .meta { font-size: 11px; color: #3a5a63; }
+    .card .thumb { width: 60px; height: 60px; border-radius: 4px; object-fit: cover; flex-shrink: 0; background: #0c181c; }
+
+    .btn {
+      background: rgba(255,91,53,0.15);
+      color: #ff5b35;
+      border: 1px solid rgba(255,91,53,0.3);
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 11px;
+      cursor: pointer;
+      letter-spacing: 0.08em;
+      transition: all 0.15s;
+    }
+    .btn:hover { background: rgba(255,91,53,0.25); }
+    .btn-sm { padding: 4px 10px; font-size: 10px; }
+    .btn-del { background: rgba(200,50,50,0.1); color: #c83232; border-color: rgba(200,50,50,0.25); }
+    .btn-del:hover { background: rgba(200,50,50,0.2); }
+    .btn-grn { background: rgba(50,180,80,0.1); color: #32b450; border-color: rgba(50,180,80,0.25); }
+    .btn-grn:hover { background: rgba(50,180,80,0.2); }
+
+    .toggle { cursor: pointer; font-size: 11px; padding: 4px 10px; border-radius: 4px; border: none; font-family: inherit; }
+    .toggle.on { background: rgba(50,180,80,0.15); color: #32b450; }
+    .toggle.off { background: rgba(200,50,50,0.1); color: #c83232; }
+
+    .form-box {
+      background: #152024;
+      border: 1px solid rgba(74,110,119,0.2);
+      border-radius: 6px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .form-box h3 { font-size: 12px; color: #ff5b35; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 14px; }
+    .form-row { display: flex; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+    .form-row > * { flex: 1; min-width: 140px; }
+
+    label { display: block; font-size: 10px; color: #3a5a63; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px; }
+    input, select, textarea {
+      width: 100%;
+      background: #0c181c;
+      border: 1px solid rgba(74,110,119,0.25);
+      border-radius: 4px;
+      padding: 8px 10px;
+      color: #ddd5c8;
+      font-family: inherit;
+      font-size: 12px;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #ff5b35; }
+    textarea { resize: vertical; min-height: 60px; }
+    input[type="file"] { padding: 6px; }
+    input[type="color"] { padding: 2px; height: 34px; cursor: pointer; }
+
+    .actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    .empty { text-align: center; color: #3a5a63; padding: 40px 0; font-size: 12px; }
+
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: #152024; border: 1px solid #ff5b35; border-radius: 6px;
+      padding: 12px 20px; font-size: 12px; color: #ff5b35;
+      opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999;
+    }
+    .toast.show { opacity: 1; }
+
+    .order-btns { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
+    .order-btns button {
+      background: none; border: 1px solid rgba(74,110,119,0.2); color: #3a5a63;
+      width: 24px; height: 20px; border-radius: 3px; cursor: pointer; font-size: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .order-btns button:hover { color: #ff5b35; border-color: #ff5b35; }
+  </style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div>
+    <div class="logo">LEAP</div>
+    <div class="sub">TV Admin</div>
+  </div>
+  <a href="/public/tv.html" target="_blank">TV Display openen →</a>
+</div>
+
+<div class="tabs" id="tabs">
+  <div class="tab active" data-tab="slides">Slides</div>
+  <div class="tab" data-tab="facts">Facts</div>
+  <div class="tab" data-tab="events">Events</div>
+  <div class="tab" data-tab="nieuws">Nieuws</div>
+  <div class="tab" data-tab="instellingen">Instellingen</div>
+</div>
+
+<div class="container">
+  <!-- ═══ SLIDES ═══ -->
+  <div class="panel active" id="p-slides">
+    <div class="form-box">
+      <h3>Nieuwe slide</h3>
+      <div class="form-row">
+        <div>
+          <label>Type</label>
+          <select id="sl-type">
+            <option value="tekst">Tekst</option>
+            <option value="foto-full">Foto (volledig)</option>
+            <option value="foto-split">Foto + tekst (split)</option>
+          </select>
+        </div>
+        <div>
+          <label>Label</label>
+          <input id="sl-label" placeholder="bijv. Community nieuws">
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Headline</label>
+          <input id="sl-headline" placeholder="Grote titel">
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Subtekst</label>
+          <textarea id="sl-subtext" placeholder="Beschrijving..."></textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Foto (upload naar Storage)</label>
+          <input type="file" id="sl-file" accept="image/*">
+        </div>
+      </div>
+      <button class="btn" onclick="addSlide()">Slide toevoegen</button>
+    </div>
+    <div id="slides-list"></div>
+  </div>
+
+  <!-- ═══ FACTS ═══ -->
+  <div class="panel" id="p-facts">
+    <div class="form-box">
+      <h3>Nieuw feit</h3>
+      <div class="form-row">
+        <div>
+          <label>Tekst</label>
+          <input id="fa-tekst" placeholder="Wist je dat...">
+        </div>
+      </div>
+      <button class="btn" onclick="addFact()">Feit toevoegen</button>
+    </div>
+    <div id="facts-list"></div>
+  </div>
+
+  <!-- ═══ EVENTS ═══ -->
+  <div class="panel" id="p-events">
+    <div class="form-box">
+      <h3>Nieuw event</h3>
+      <div class="form-row">
+        <div><label>Naam</label><input id="ev-naam" placeholder="Event naam"></div>
+        <div><label>Datum</label><input type="date" id="ev-datum"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Tijd</label><input type="time" id="ev-tijd"></div>
+        <div><label>Kleur</label><input type="color" id="ev-kleur" value="#ff5b35"></div>
+      </div>
+      <button class="btn" onclick="addEvent()">Event toevoegen</button>
+    </div>
+    <div id="events-list"></div>
+  </div>
+
+  <!-- ═══ NIEUWS ═══ -->
+  <div class="panel" id="p-nieuws">
+    <div class="form-box">
+      <h3>Nieuw bericht</h3>
+      <div class="form-row">
+        <div><label>Titel</label><input id="nw-titel" placeholder="Titel"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Body</label><textarea id="nw-body" placeholder="Tekst..."></textarea></div>
+      </div>
+      <button class="btn" onclick="addNieuws()">Bericht toevoegen</button>
+    </div>
+    <div id="nieuws-list"></div>
+  </div>
+
+  <!-- ═══ INSTELLINGEN ═══ -->
+  <div class="panel" id="p-instellingen">
+    <div class="form-box">
+      <h3>Instellingen</h3>
+      <div id="inst-list"></div>
+      <div style="margin-top:14px">
+        <div class="form-row">
+          <div><label>Sleutel</label><input id="inst-key" placeholder="sleutel"></div>
+          <div><label>Waarde</label><input id="inst-val" placeholder="waarde"></div>
+        </div>
+        <button class="btn" onclick="addInstelling()">Toevoegen</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ── Config ───────────────────────────────────────────────────
+  const SUPABASE_URL         = 'https://yunbzsboqgldhoddpfjx.supabase.co';
+  const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1bmJ6c2JvcWdsZGhvZGRwZmp4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjUyOTc2MSwiZXhwIjoyMDg4MTA1NzYxfQ.W0KMNmt8f_5CLXAUKK23VpROVH9wryyS0FDZrFiUhbo';
+  const STORAGE_BUCKET       = 'tv-fotos';
+  // ─────────────────────────────────────────────────────────────
+
+  // Auth check
+  if (prompt('Wachtwoord:') !== 'leap2024') {
+    document.body.innerHTML = '<div style="text-align:center;padding:80px;color:#c83232">Verkeerd wachtwoord.</div>';
+    throw new Error('unauthorized');
+  }
+
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
+  // ── Tabs ─────────────────────────────────────────────────────
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      document.getElementById('p-' + t.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ── Toast ────────────────────────────────────────────────────
+  function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2500);
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // SLIDES
+  // ════════════════════════════════════════════════════════════
+  async function loadSlides() {
+    const { data } = await db.from('slides').select('*').order('volgorde');
+    const el = document.getElementById('slides-list');
+    if (!data || !data.length) { el.innerHTML = '<div class="empty">Geen slides.</div>'; return; }
+    el.innerHTML = data.map((s, i) => `
+      <div class="card">
+        ${s.foto_url ? `<img class="thumb" src="${s.foto_url}" alt="">` : ''}
+        <div class="order-btns">
+          <button onclick="moveSlide(${s.id}, ${i-1}, ${JSON.stringify(data.map(x=>x.id)).replace(/"/g,'&quot;')})">&#9650;</button>
+          <button onclick="moveSlide(${s.id}, ${i+1}, ${JSON.stringify(data.map(x=>x.id)).replace(/"/g,'&quot;')})">&#9660;</button>
+        </div>
+        <div class="info">
+          <div class="title">${s.headline || '(geen titel)'}</div>
+          <div class="meta">${s.type} · ${s.label || ''}</div>
+        </div>
+        <div class="actions">
+          <button class="toggle ${s.actief ? 'on' : 'off'}" onclick="toggleSlide(${s.id}, ${!s.actief})">${s.actief ? 'AAN' : 'UIT'}</button>
+          <button class="btn btn-sm btn-del" onclick="delSlide(${s.id})">×</button>
+        </div>
+      </div>`).join('');
+  }
+
+  async function addSlide() {
+    const type = document.getElementById('sl-type').value;
+    const label = document.getElementById('sl-label').value;
+    const headline = document.getElementById('sl-headline').value;
+    const subtext = document.getElementById('sl-subtext').value;
+    const fileInput = document.getElementById('sl-file');
+    let foto_url = null;
+
+    if (fileInput.files.length) {
+      const file = fileInput.files[0];
+      const name = Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const { error } = await db.storage.from(STORAGE_BUCKET).upload(name, file, { upsert: true });
+      if (error) { toast('Upload fout: ' + error.message); return; }
+      const { data: urlData } = db.storage.from(STORAGE_BUCKET).getPublicUrl(name);
+      foto_url = urlData.publicUrl;
+    }
+
+    const { data: existing } = await db.from('slides').select('volgorde').order('volgorde', { ascending: false }).limit(1);
+    const volgorde = (existing && existing.length) ? existing[0].volgorde + 1 : 0;
+
+    const { error } = await db.from('slides').insert({ type, label, headline, subtext, foto_url, volgorde });
+    if (error) { toast('Fout: ' + error.message); return; }
+    toast('Slide toegevoegd');
+    document.getElementById('sl-label').value = '';
+    document.getElementById('sl-headline').value = '';
+    document.getElementById('sl-subtext').value = '';
+    fileInput.value = '';
+    loadSlides();
+  }
+
+  async function toggleSlide(id, val) {
+    await db.from('slides').update({ actief: val }).eq('id', id);
+    loadSlides();
+  }
+
+  async function delSlide(id) {
+    if (!confirm('Slide verwijderen?')) return;
+    await db.from('slides').delete().eq('id', id);
+    toast('Verwijderd');
+    loadSlides();
+  }
+
+  async function moveSlide(id, newIdx, ids) {
+    if (newIdx < 0 || newIdx >= ids.length) return;
+    const updates = ids.map((sid, i) => ({ id: sid, volgorde: i }));
+    const moved = updates.splice(updates.findIndex(u => u.id === id), 1)[0];
+    updates.splice(newIdx, 0, moved);
+    for (let i = 0; i < updates.length; i++) {
+      await db.from('slides').update({ volgorde: i }).eq('id', updates[i].id);
+    }
+    loadSlides();
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // FACTS
+  // ════════════════════════════════════════════════════════════
+  async function loadFacts() {
+    const { data } = await db.from('facts').select('*').order('volgorde');
+    const el = document.getElementById('facts-list');
+    if (!data || !data.length) { el.innerHTML = '<div class="empty">Geen feiten.</div>'; return; }
+    el.innerHTML = data.map(f => `
+      <div class="card">
+        <div class="info">
+          <div class="title">${f.tekst}</div>
+        </div>
+        <div class="actions">
+          <button class="toggle ${f.actief ? 'on' : 'off'}" onclick="toggleFact(${f.id}, ${!f.actief})">${f.actief ? 'AAN' : 'UIT'}</button>
+          <button class="btn btn-sm btn-del" onclick="delFact(${f.id})">×</button>
+        </div>
+      </div>`).join('');
+  }
+
+  async function addFact() {
+    const tekst = document.getElementById('fa-tekst').value.trim();
+    if (!tekst) return;
+    const { data: existing } = await db.from('facts').select('volgorde').order('volgorde', { ascending: false }).limit(1);
+    const volgorde = (existing && existing.length) ? existing[0].volgorde + 1 : 0;
+    const { error } = await db.from('facts').insert({ tekst, volgorde });
+    if (error) { toast('Fout: ' + error.message); return; }
+    toast('Feit toegevoegd');
+    document.getElementById('fa-tekst').value = '';
+    loadFacts();
+  }
+
+  async function toggleFact(id, val) {
+    await db.from('facts').update({ actief: val }).eq('id', id);
+    loadFacts();
+  }
+
+  async function delFact(id) {
+    if (!confirm('Verwijderen?')) return;
+    await db.from('facts').delete().eq('id', id);
+    toast('Verwijderd');
+    loadFacts();
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // EVENTS
+  // ════════════════════════════════════════════════════════════
+  async function loadEvents() {
+    const { data } = await db.from('events').select('*').order('datum');
+    const el = document.getElementById('events-list');
+    if (!data || !data.length) { el.innerHTML = '<div class="empty">Geen events.</div>'; return; }
+    el.innerHTML = data.map(e => `
+      <div class="card">
+        <div class="ev-dot" style="background:${e.kleur};width:12px;height:12px;border-radius:50%;flex-shrink:0"></div>
+        <div class="info">
+          <div class="title">${e.naam}</div>
+          <div class="meta">${e.datum} · ${e.tijd ? e.tijd.slice(0,5) : '—'}</div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-sm btn-del" onclick="delEvent(${e.id})">×</button>
+        </div>
+      </div>`).join('');
+  }
+
+  async function addEvent() {
+    const naam = document.getElementById('ev-naam').value.trim();
+    const datum = document.getElementById('ev-datum').value;
+    const tijd = document.getElementById('ev-tijd').value || null;
+    const kleur = document.getElementById('ev-kleur').value;
+    if (!naam || !datum) { toast('Naam en datum verplicht'); return; }
+    const { error } = await db.from('events').insert({ naam, datum, tijd, kleur });
+    if (error) { toast('Fout: ' + error.message); return; }
+    toast('Event toegevoegd');
+    document.getElementById('ev-naam').value = '';
+    document.getElementById('ev-datum').value = '';
+    document.getElementById('ev-tijd').value = '';
+    loadEvents();
+  }
+
+  async function delEvent(id) {
+    if (!confirm('Verwijderen?')) return;
+    await db.from('events').delete().eq('id', id);
+    toast('Verwijderd');
+    loadEvents();
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // NIEUWS
+  // ════════════════════════════════════════════════════════════
+  async function loadNieuws() {
+    const { data } = await db.from('nieuws').select('*').order('id', { ascending: false });
+    const el = document.getElementById('nieuws-list');
+    if (!data || !data.length) { el.innerHTML = '<div class="empty">Geen berichten.</div>'; return; }
+    el.innerHTML = data.map(n => `
+      <div class="card">
+        <div class="info">
+          <div class="title">${n.titel}</div>
+          <div class="meta">${(n.body || '').substring(0, 80)}${n.body && n.body.length > 80 ? '...' : ''}</div>
+        </div>
+        <div class="actions">
+          <button class="toggle ${n.actief ? 'on' : 'off'}" onclick="toggleNieuws(${n.id}, ${!n.actief})">${n.actief ? 'AAN' : 'UIT'}</button>
+          <button class="btn btn-sm btn-del" onclick="delNieuws(${n.id})">×</button>
+        </div>
+      </div>`).join('');
+  }
+
+  async function addNieuws() {
+    const titel = document.getElementById('nw-titel').value.trim();
+    const body = document.getElementById('nw-body').value.trim();
+    if (!titel) return;
+    const { error } = await db.from('nieuws').insert({ titel, body });
+    if (error) { toast('Fout: ' + error.message); return; }
+    toast('Bericht toegevoegd');
+    document.getElementById('nw-titel').value = '';
+    document.getElementById('nw-body').value = '';
+    loadNieuws();
+  }
+
+  async function toggleNieuws(id, val) {
+    await db.from('nieuws').update({ actief: val }).eq('id', id);
+    loadNieuws();
+  }
+
+  async function delNieuws(id) {
+    if (!confirm('Verwijderen?')) return;
+    await db.from('nieuws').delete().eq('id', id);
+    toast('Verwijderd');
+    loadNieuws();
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // INSTELLINGEN
+  // ════════════════════════════════════════════════════════════
+  async function loadInstellingen() {
+    const { data } = await db.from('instellingen').select('*').order('sleutel');
+    const el = document.getElementById('inst-list');
+    if (!data || !data.length) { el.innerHTML = '<div class="empty">Geen instellingen.</div>'; return; }
+    el.innerHTML = data.map(i => `
+      <div class="card">
+        <div class="info">
+          <div class="title" style="color:#ff5b35;font-size:11px">${i.sleutel}</div>
+          <div class="meta">
+            <input value="${(i.waarde || '').replace(/"/g, '&quot;')}" onchange="updateInstelling('${i.sleutel}', this.value)"
+                   style="background:#0c181c;border:1px solid rgba(74,110,119,0.25);border-radius:3px;padding:5px 8px;color:#ddd5c8;font-family:inherit;font-size:12px;width:100%">
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-sm btn-del" onclick="delInstelling('${i.sleutel}')">×</button>
+        </div>
+      </div>`).join('');
+  }
+
+  async function updateInstelling(key, val) {
+    await db.from('instellingen').update({ waarde: val }).eq('sleutel', key);
+    toast('Opgeslagen');
+  }
+
+  async function addInstelling() {
+    const sleutel = document.getElementById('inst-key').value.trim();
+    const waarde = document.getElementById('inst-val').value.trim();
+    if (!sleutel) return;
+    const { error } = await db.from('instellingen').upsert({ sleutel, waarde });
+    if (error) { toast('Fout: ' + error.message); return; }
+    toast('Toegevoegd');
+    document.getElementById('inst-key').value = '';
+    document.getElementById('inst-val').value = '';
+    loadInstellingen();
+  }
+
+  async function delInstelling(key) {
+    if (!confirm('Instelling verwijderen?')) return;
+    await db.from('instellingen').delete().eq('sleutel', key);
+    toast('Verwijderd');
+    loadInstellingen();
+  }
+
+  // ── Init ─────────────────────────────────────────────────────
+  loadSlides();
+  loadFacts();
+  loadEvents();
+  loadNieuws();
+  loadInstellingen();
+</script>
+</body>
+</html>

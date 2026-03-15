@@ -7,3 +7,13 @@
   [headers.values]
     X-Frame-Options = "SAMEORIGIN"
     X-Content-Type-Options = "nosniff"
+
+[[redirects]]
+  from = "/tv"
+  to = "/public/tv.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/public/admin.html"
+  status = 200

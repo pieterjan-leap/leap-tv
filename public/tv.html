@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LEAP TV Display</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #000; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+
+    #tv4 {
+      background: #0c181c;
+      color: #ddd5c8;
+      font-family: 'Space Mono', monospace;
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      grid-template-columns: 1fr 1fr;
+      padding: 2.6%;
+      gap: clamp(7px, 1.4%, 16px);
+      position: relative;
+      overflow: hidden;
+    }
+    #tv4::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 90% 0%, rgba(255,91,53,0.09) 0%, transparent 55%),
+        radial-gradient(ellipse at 0% 100%, rgba(255,91,53,0.04) 0%, transparent 40%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .tv-header {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: clamp(5px, 1%, 12px);
+      border-bottom: 1px solid rgba(74,110,119,0.2);
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+    .logo { font-size: clamp(11px, 2.2vw, 28px); font-weight: 700; color: #ff5b35; letter-spacing: 0.22em; }
+    .tagline { font-size: clamp(4px, 0.62vw, 7px); color: #2e4e57; letter-spacing: 0.2em; text-transform: uppercase; margin-top: 2px; }
+    .clock { font-size: clamp(14px, 2.8vw, 36px); font-weight: 700; letter-spacing: 0.04em; line-height: 1; text-align: right; }
+    .dateline { font-size: clamp(4px, 0.62vw, 7px); color: #2e4e57; margin-top: 2px; text-align: right; text-transform: capitalize; }
+
+    .left-col { display: flex; flex-direction: column; gap: clamp(6px, 1.1%, 13px); min-height: 0; position: relative; z-index: 1; }
+    .right-col { display: flex; flex-direction: column; gap: clamp(6px, 1.1%, 13px); min-height: 0; position: relative; z-index: 1; }
+
+    .spotlight {
+      flex: 1;
+      border-radius: 6px;
+      position: relative;
+      overflow: hidden;
+      min-height: 0;
+      border: 1px solid rgba(255,91,53,0.22);
+    }
+    .spotlight::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: #ff5b35;
+      z-index: 3;
+    }
+    .sl-stage {
+      position: absolute;
+      inset: 0;
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+    .sl-stage.out { opacity: 0; transform: translateY(14px); }
+    .sl-stage.in  { opacity: 1; transform: translateY(0); }
+
+    .sl-text {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: clamp(10px, 1.8%, 22px);
+    }
+    .sl-label { font-size: clamp(4px, 0.62vw, 7px); letter-spacing: 0.22em; text-transform: uppercase; color: #2e4e57; margin-bottom: clamp(5px, 1%, 12px); }
+    .sl-headline { font-size: clamp(12px, 2.3vw, 30px); font-weight: 700; line-height: 1.25; margin-bottom: clamp(4px, 0.8%, 10px); }
+    .sl-body { font-size: clamp(6px, 1vw, 12px); color: #8dadb3; line-height: 1.7; }
+
+    .sl-photo-full { position: absolute; inset: 0; }
+    .sl-photo-full img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .sl-photo-full .overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(12,24,28,0.88) 0%, rgba(12,24,28,0.15) 55%, transparent 100%);
+    }
+    .sl-photo-full .caption {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: clamp(8px, 1.5%, 18px);
+    }
+
+    .sl-photo-split { display: flex; height: 100%; }
+    .sl-photo-split .photo-half { flex: 1; position: relative; overflow: hidden; }
+    .sl-photo-split .photo-half img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .sl-photo-split .photo-half::after {
+      content: '';
+      position: absolute;
+      top: 0; right: 0; bottom: 0;
+      width: 40%;
+      background: linear-gradient(to right, transparent, #0c181c);
+    }
+    .sl-photo-split .text-half {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: clamp(8px, 1.5%, 18px) clamp(8px, 1.5%, 18px) clamp(8px, 1.5%, 18px) clamp(4px, 0.7%, 8px);
+    }
+
+    .fact-strip {
+      border: 1px solid rgba(74,110,119,0.15);
+      border-radius: 6px;
+      padding: clamp(6px, 1.1%, 13px);
+      display: flex;
+      align-items: center;
+      gap: clamp(7px, 1.3%, 15px);
+      flex-shrink: 0;
+    }
+    .fact-pill {
+      background: rgba(255,91,53,0.13);
+      color: #ff5b35;
+      font-size: clamp(4px, 0.58vw, 7px);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: clamp(2px, 0.35%, 4px) clamp(4px, 0.8%, 9px);
+      border-radius: 3px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .fact-txt { font-size: clamp(6px, 1vw, 12px); color: #8dadb3; line-height: 1.5; flex: 1; min-width: 0; transition: opacity 0.3s; }
+    .fact-txt.fade { opacity: 0; }
+
+    .events-zone {
+      flex: 1.1;
+      border: 1px solid rgba(74,110,119,0.15);
+      border-radius: 6px;
+      padding: clamp(9px, 1.7%, 20px);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .zone-label { font-size: clamp(4px, 0.58vw, 7px); letter-spacing: 0.22em; text-transform: uppercase; color: #2e4e57; margin-bottom: clamp(6px, 1.1%, 13px); flex-shrink: 0; }
+    .ev-list { flex: 1; display: flex; flex-direction: column; justify-content: space-between; min-height: 0; }
+    .ev { display: flex; align-items: center; gap: clamp(5px, 0.9vw, 11px); padding: clamp(3px, 0.6%, 7px) 0; border-bottom: 1px solid rgba(74,110,119,0.1); }
+    .ev:last-child { border-bottom: none; }
+    .ev.next { background: rgba(255,91,53,0.07); border-radius: 4px; padding-left: clamp(4px, 0.7%, 9px); margin: 0 clamp(-4px, -0.7%, -9px); border-bottom: none; }
+    .ev-dot { width: clamp(5px, 0.72vw, 8px); height: clamp(5px, 0.72vw, 8px); border-radius: 50%; flex-shrink: 0; }
+    .ev-date { font-size: clamp(5px, 0.7vw, 8px); color: #3a5a63; min-width: clamp(18px, 3vw, 38px); font-variant-numeric: tabular-nums; }
+    .ev-name { flex: 1; font-size: clamp(9px, 1.55vw, 19px); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ev-badge { font-size: clamp(4px, 0.52vw, 6px); background: rgba(255,91,53,0.18); color: #ff5b35; padding: 2px 5px; border-radius: 3px; letter-spacing: 0.1em; text-transform: uppercase; flex-shrink: 0; }
+    .ev-time { font-size: clamp(5px, 0.7vw, 8px); color: #8dadb3; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+
+    .review-zone {
+      flex: 1;
+      border: 1px solid rgba(255,91,53,0.18);
+      border-radius: 6px;
+      padding: clamp(9px, 1.7%, 20px);
+      display: flex;
+      align-items: center;
+      gap: clamp(9px, 1.8vw, 22px);
+      position: relative;
+      overflow: hidden;
+    }
+    .review-zone::before { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: rgba(255,91,53,0.35); }
+    .review-text { flex: 1; min-width: 0; }
+    .review-headline { font-size: clamp(9px, 1.75vw, 22px); font-weight: 700; line-height: 1.25; margin-bottom: clamp(3px, 0.5%, 7px); }
+    .review-sub { font-size: clamp(5px, 0.85vw, 10px); color: #8dadb3; line-height: 1.6; }
+    .review-sub span { color: #ddd5c8; }
+    .stars { color: #ff5b35; font-size: clamp(7px, 1.3vw, 16px); letter-spacing: 3px; margin-top: clamp(3px, 0.6%, 8px); }
+    .qr-block { display: flex; flex-direction: column; align-items: center; gap: clamp(3px, 0.5%, 6px); flex-shrink: 0; }
+    .qr-img { border-radius: 3px; width: clamp(48px, 8.5vw, 104px); height: clamp(48px, 8.5vw, 104px); }
+    .qr-url { font-size: clamp(4px, 0.55vw, 6px); color: #3a5a63; letter-spacing: 0.1em; text-align: center; }
+
+    .tv-footer {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: clamp(3px, 0.7%, 9px);
+      border-top: 1px solid rgba(74,110,119,0.14);
+      flex-shrink: 0;
+      z-index: 1;
+      position: relative;
+    }
+    .footer-left { display: flex; align-items: center; gap: 5px; }
+    .fdot { height: clamp(2px, 0.4vw, 5px); border-radius: 3px; transition: all 0.35s; background: rgba(74,110,119,0.28); }
+    .fdot.on { background: #ff5b35; }
+    .prog-track { width: clamp(45px, 8vw, 100px); height: clamp(1px, 0.2vw, 2px); background: rgba(74,110,119,0.15); border-radius: 4px; overflow: hidden; margin-left: 6px; }
+    .prog-fill { height: 100%; background: rgba(255,91,53,0.5); border-radius: 4px; transition: width 0.1s linear; }
+    .slogan { font-size: clamp(4px, 0.58vw, 7px); color: rgba(74,110,119,0.4); letter-spacing: 0.22em; text-transform: uppercase; }
+    .slide-type-badge { font-size: clamp(4px, 0.55vw, 6px); color: #3a5a63; letter-spacing: 0.14em; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+<div id="tv4">
+
+  <div class="tv-header">
+    <div>
+      <div class="logo">LEAP</div>
+      <div class="tagline">Functional Fitness · Hasselt</div>
+    </div>
+    <div>
+      <div class="clock" id="clk">--:--</div>
+      <div class="dateline" id="dt"></div>
+    </div>
+  </div>
+
+  <div class="left-col">
+    <div class="spotlight" id="spotlight">
+      <div class="sl-stage in" id="sl-stage"></div>
+    </div>
+    <div class="fact-strip">
+      <div class="fact-pill">Wist je dat</div>
+      <div class="fact-txt" id="fact-txt"></div>
+    </div>
+  </div>
+
+  <div class="right-col">
+    <div class="events-zone">
+      <div class="zone-label">Aankomende events</div>
+      <div class="ev-list" id="ev-list"></div>
+    </div>
+    <div class="review-zone">
+      <div class="review-text">
+        <div class="review-headline">Wat vind jij<br>van LEAP? <span style="color:#ff5b35">★</span></div>
+        <div class="review-sub">
+          Scan de QR-code en laat het ons weten.<br>
+          <span>Het duurt minder dan een minuutje — en het helpt ons enorm!</span>
+        </div>
+        <div class="stars">★★★★★</div>
+      </div>
+      <div class="qr-block">
+        <img class="qr-img" id="qr-img" src="" alt="QR code">
+        <div class="qr-url" id="qr-url">leaphasselt.be/reviews</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tv-footer">
+    <div class="footer-left" id="footer-dots"></div>
+    <div class="slide-type-badge" id="type-badge"></div>
+    <div class="slogan">Take the LEAP!</div>
+  </div>
+
+</div>
+
+<!-- Supabase JS client MOET voor het main script laden -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ── Supabase config ──────────────────────────────────────────
+  const SUPABASE_URL      = 'https://yunbzsboqgldhoddpfjx.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1bmJ6c2JvcWdsZGhvZGRwZmp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1Mjk3NjEsImV4cCI6MjA4ODEwNTc2MX0.7YSoEUUWpKU8K2asL_KExcnfd3PpyAKlG0Oe6uE9wlU';
+  // ────────────────────────────────────────────────────────────
+
+  // Fallback data zolang Supabase leeg is
+  const FACTS_FALLBACK = [
+    "De gemiddelde WOD verbrandt 400–700 kcal afhankelijk van intensiteit.",
+    "Groepstraining verhoogt je inspanning met gemiddeld 20%.",
+    "Spieren groeien tijdens rust — niet tijdens de training zelf.",
+    "Na 6 weken consistent trainen zie je al significant verschil.",
+    "Een goede warming-up verlaagt je blessurerisico met tot 50%.",
+    "Bij LEAP trainen meer dan 265 actieve leden wekelijks.",
+    "Functional fitness verbetert ook je houding en dagelijkse energie.",
+  ];
+
+  const EVENTS_FALLBACK = [
+    { datum:'22/03', naam:'HYROX Prep Class',    tijd:'10:00', kleur:'#4fb3d4', next:true },
+    { datum:'23/03', naam:'Team WOD Sunday',      tijd:'10:00', kleur:'#ff5b35', next:false },
+    { datum:'29/03', naam:'LEAP HYROX Challenge', tijd:'09:00', kleur:'#f5c842', next:false },
+    { datum:'05/04', naam:'Gymnastics Workshop',  tijd:'18:30', kleur:'#4fb3d4', next:false },
+  ];
+
+  const SLIDES_FALLBACK = [
+    {
+      type: 'tekst', label: 'tekst', dur: 9000,
+      render: () => `
+        <div class="sl-text">
+          <div class="sl-label">Community nieuws</div>
+          <div class="sl-headline">LEAP HYROX<br>Challenge<br><span style="color:#ff5b35">→ za 29 maart</span></div>
+          <div class="sl-body">Onze allereerste interne challenge!<br>Schrijf je in via de app of vraag je coach.</div>
+        </div>`
+    },
+    {
+      type: 'foto-full', label: 'foto', dur: 8000,
+      render: () => `
+        <div class="sl-photo-full">
+          <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80" alt="LEAP training">
+          <div class="overlay"></div>
+          <div class="caption">
+            <div class="sl-label">WOD van de dag</div>
+            <div class="sl-headline" style="font-size:clamp(11px,2vw,26px)">5 rounds for time</div>
+            <div class="sl-body">15 wall balls · 12 pull-ups · 9 box jumps</div>
+          </div>
+        </div>`
+    },
+    {
+      type: 'foto-split', label: 'foto + tekst', dur: 9000,
+      render: () => `
+        <div class="sl-photo-split">
+          <div class="photo-half">
+            <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80" alt="LEAP athlete">
+          </div>
+          <div class="text-half">
+            <div class="sl-label">Coach says</div>
+            <div class="sl-headline">"Consistentie<br>verslaat<br><span style="color:#ff5b35">perfectie.</span>"</div>
+            <div class="sl-body" style="margin-top:clamp(4px,0.8%,10px)">— Pieter-Jan</div>
+          </div>
+        </div>`
+    },
+    {
+      type: 'foto-full', label: 'foto', dur: 8000,
+      render: () => `
+        <div class="sl-photo-full">
+          <img src="https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=800&q=80" alt="LEAP sfeer">
+          <div class="overlay"></div>
+          <div class="caption">
+            <div class="sl-label">Nieuwe klassen</div>
+            <div class="sl-headline" style="font-size:clamp(11px,2vw,26px)">Shape Class</div>
+            <div class="sl-body">Elke zaterdag om 09:30 · Kracht + mobiliteit</div>
+          </div>
+        </div>`
+    },
+    {
+      type: 'tekst', label: 'tekst', dur: 9000,
+      render: () => `
+        <div class="sl-text">
+          <div class="sl-label">Welkom bij LEAP</div>
+          <div class="sl-headline">265+ leden.<br>10 coaches.<br><span style="color:#ff5b35">Één community.</span></div>
+          <div class="sl-body">Van No Sweat Intro tot HYROX — jij bepaalt hoe ver je gaat.</div>
+        </div>`
+    },
+  ];
+
+  const DEFAULT_QR_URL = 'https://g.page/r/leaphasselt/review';
+  let SLIDES = SLIDES_FALLBACK;
+  let FACTS  = FACTS_FALLBACK;
+  let EVENTS = EVENTS_FALLBACK;
+  let slideDuration = 9000;
+  let slIdx = 0, factIdx = 0, progStart = Date.now(), busy = false;
+
+  // ── Supabase data laden ──────────────────────────────────────
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  async function loadData() {
+    try {
+      const [{ data: slides }, { data: facts }, { data: events }, { data: inst }] = await Promise.all([
+        db.from('slides').select('*').eq('actief', true).order('volgorde'),
+        db.from('facts').select('*').eq('actief', true).order('volgorde'),
+        db.from('events').select('*').gte('datum', new Date().toISOString().split('T')[0]).order('datum').limit(6),
+        db.from('instellingen').select('*'),
+      ]);
+
+      if (slides && slides.length) {
+        SLIDES = slides.map(s => ({
+          type: s.type,
+          label: s.label || s.type,
+          dur: slideDuration,
+          render: () => buildSlideHTML(s),
+        }));
+      }
+      if (facts && facts.length)  FACTS = facts.map(f => f.tekst);
+      if (events && events.length) {
+        EVENTS = events.map((e, i) => ({
+          datum: new Date(e.datum).toLocaleDateString('nl-BE', { day:'2-digit', month:'2-digit' }),
+          naam: e.naam,
+          tijd: e.tijd ? e.tijd.slice(0,5) : '',
+          kleur: e.kleur || '#ff5b35',
+          next: i === 0,
+        }));
+      }
+      if (inst && inst.length) {
+        const qr = inst.find(i => i.sleutel === 'qr_url');
+        if (qr && qr.waarde) setQR(qr.waarde);
+        const interval = inst.find(i => i.sleutel === 'slide_interval');
+        if (interval && interval.waarde) slideDuration = parseInt(interval.waarde) * 1000;
+      }
+
+      buildEvents();
+      buildDots();
+      document.getElementById('fact-txt').textContent = FACTS[factIdx % FACTS.length];
+      if (slIdx >= SLIDES.length) slIdx = 0;
+      document.getElementById('sl-stage').innerHTML = SLIDES[slIdx].render();
+      updateDots();
+    } catch(e) { console.warn('Supabase load failed, using fallback', e); }
+  }
+
+  function buildSlideHTML(s) {
+    const esc = (t) => t || '';
+    if (s.type === 'foto-full') return `
+      <div class="sl-photo-full">
+        <img src="${esc(s.foto_url)}" alt="${esc(s.headline)}">
+        <div class="overlay"></div>
+        <div class="caption">
+          ${s.label ? `<div class="sl-label">${esc(s.label)}</div>` : ''}
+          <div class="sl-headline" style="font-size:clamp(11px,2vw,26px)">${esc(s.headline)}</div>
+          <div class="sl-body">${esc(s.subtext)}</div>
+        </div>
+      </div>`;
+    if (s.type === 'foto-split') return `
+      <div class="sl-photo-split">
+        <div class="photo-half"><img src="${esc(s.foto_url)}" alt=""></div>
+        <div class="text-half">
+          ${s.label ? `<div class="sl-label">${esc(s.label)}</div>` : ''}
+          <div class="sl-headline">${esc(s.headline)}</div>
+          <div class="sl-body" style="margin-top:clamp(4px,0.8%,10px)">${esc(s.subtext)}</div>
+        </div>
+      </div>`;
+    return `
+      <div class="sl-text">
+        ${s.label ? `<div class="sl-label">${esc(s.label)}</div>` : ''}
+        <div class="sl-headline">${esc(s.headline)}</div>
+        <div class="sl-body">${esc(s.subtext)}</div>
+      </div>`;
+  }
+
+  function setQR(url) {
+    const img = document.getElementById('qr-img');
+    if (img) img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&bgcolor=0c181c&color=ddd5c8&data=' + encodeURIComponent(url);
+    const el = document.getElementById('qr-url');
+    if (el) {
+      try { el.textContent = new URL(url).hostname + new URL(url).pathname; } catch(e) { el.textContent = url; }
+    }
+  }
+
+  function buildEvents() {
+    const el = document.getElementById('ev-list');
+    if (el) el.innerHTML = EVENTS.map(e => `
+      <div class="ev ${e.next ? 'next' : ''}">
+        <div class="ev-dot" style="background:${e.kleur}"></div>
+        <div class="ev-date">${e.datum}</div>
+        <div class="ev-name">${e.naam}</div>
+        ${e.next ? '<div class="ev-badge">volgende</div>' : ''}
+        <div class="ev-time">${e.tijd}</div>
+      </div>`).join('');
+  }
+
+  function buildDots() {
+    const el = document.getElementById('footer-dots');
+    if (!el) return;
+    let html = '';
+    for (let i = 0; i < SLIDES.length; i++) {
+      html += `<div class="fdot" id="fd${i}"></div>`;
+    }
+    html += '<div class="prog-track"><div class="prog-fill" id="pf" style="width:0%"></div></div>';
+    el.innerHTML = html;
+  }
+
+  function updateDots() {
+    for (let i = 0; i < SLIDES.length; i++) {
+      const d = document.getElementById('fd' + i);
+      if (!d) continue;
+      const on = i === slIdx;
+      d.classList.toggle('on', on);
+      d.style.width = on ? 'clamp(16px,2.6vw,32px)' : 'clamp(4px,0.65vw,7px)';
+    }
+    const tb = document.getElementById('type-badge');
+    if (tb) tb.textContent = SLIDES[slIdx]?.label || '';
+  }
+
+  function nextSlide() {
+    if (busy) return;
+    busy = true;
+    const stage = document.getElementById('sl-stage');
+    stage.classList.remove('in'); stage.classList.add('out');
+    setTimeout(() => {
+      slIdx = (slIdx + 1) % SLIDES.length;
+      factIdx = (factIdx + 1) % FACTS.length;
+      stage.innerHTML = SLIDES[slIdx].render();
+      stage.classList.remove('out'); stage.classList.add('in');
+      const ft = document.getElementById('fact-txt');
+      if (ft) { ft.classList.add('fade'); setTimeout(() => { ft.textContent = FACTS[factIdx]; ft.classList.remove('fade'); }, 300); }
+      progStart = Date.now();
+      updateDots();
+      busy = false;
+    }, 460);
+  }
+
+  function tick() {
+    const now = new Date();
+    const c = document.getElementById('clk'), d = document.getElementById('dt');
+    if (c) c.textContent = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+    if (d) d.textContent = now.toLocaleDateString('nl-BE', { weekday:'long', day:'numeric', month:'long' });
+    const dur = SLIDES[slIdx]?.dur || slideDuration;
+    const pct = Math.min((Date.now() - progStart) / dur * 100, 100);
+    const pf = document.getElementById('pf');
+    if (pf) pf.style.width = pct + '%';
+    if (pct >= 100 && !busy) nextSlide();
+  }
+
+  // Init
+  document.getElementById('sl-stage').innerHTML = SLIDES[0].render();
+  document.getElementById('fact-txt').textContent = FACTS[0];
+  setQR(DEFAULT_QR_URL);
+  buildEvents();
+  buildDots();
+  updateDots();
+  setInterval(tick, 100);
+  setInterval(loadData, 60000);
+  loadData();
+</script>
+</body>
+</html>
