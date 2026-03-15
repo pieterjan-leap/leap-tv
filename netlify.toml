@@ -22,3 +22,8 @@
   from = "/review"
   to = "/public/review.html"
   status = 200
+
+[[redirects]]
+  from = "/reviews"
+  to = "/public/reviews.html"
+  status = 200
