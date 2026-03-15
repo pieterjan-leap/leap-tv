@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LEAP — Jouw review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0a1419;
+      min-height: 100dvh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      font-family: 'Space Mono', monospace;
+      color: #ddd5c8;
+      padding: 0 1rem 2rem;
+    }
+    .container {
+      width: 100%;
+      max-width: 420px;
+      padding: 2rem 0 3rem;
+      display: flex;
+      flex-direction: column;
+    }
+    .logo { color: #ff5b35; font-size: clamp(14px,4vw,18px); font-weight: 700; letter-spacing: 0.2em; }
+    .tagline { font-size: clamp(7px,2vw,9px); color: #2e4e57; letter-spacing: 0.18em; text-transform: uppercase; margin-top: 3px; }
+    .divider { height: 1px; background: rgba(74,110,119,0.2); margin: clamp(16px,5vw,24px) 0; }
+    .title { font-size: clamp(22px,6vw,28px); font-weight: 700; line-height: 1.25; margin-bottom: 8px; }
+    .subtitle { font-size: clamp(11px,3vw,13px); color: #8dadb3; line-height: 1.75; }
+    .stars-wrap { padding: clamp(20px,6vw,28px) 0 4px; }
+    .stars-row { display: flex; gap: clamp(8px,3vw,14px); justify-content: center; }
+    .star {
+      font-size: clamp(36px,11vw,48px);
+      cursor: pointer;
+      color: #1a2e38;
+      transition: color 0.12s, transform 0.12s;
+      user-select: none;
+      line-height: 1;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .star.lit { color: #ff5b35; }
+    .star:active { transform: scale(0.92); }
+    .rating-hint {
+      text-align: center;
+      font-size: clamp(10px,2.8vw,12px);
+      color: #3a5a63;
+      min-height: 16px;
+      margin-top: 12px;
+      letter-spacing: 0.04em;
+      transition: opacity 0.2s;
+    }
+    .fields { display: flex; flex-direction: column; gap: clamp(16px,5vw,22px); margin-top: clamp(20px,6vw,28px); }
+    .field-group { display: flex; flex-direction: column; gap: 8px; }
+    .field-label {
+      font-size: clamp(9px,2.2vw,11px);
+      color: #3a5a63;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      transition: color 0.25s;
+      line-height: 1.4;
+    }
+    .field-label.active { color: #ff5b35; }
+    .field-input {
+      width: 100%;
+      background: #111e24;
+      border: 1px solid rgba(74,110,119,0.22);
+      border-radius: 8px;
+      color: #ddd5c8;
+      font-family: 'Space Mono', monospace;
+      font-size: clamp(13px,3.5vw,15px);
+      padding: clamp(12px,3.5vw,14px) clamp(13px,3.5vw,16px);
+      outline: none;
+      transition: border-color 0.15s;
+      -webkit-appearance: none;
+    }
+    .field-input:focus { border-color: rgba(255,91,53,0.45); }
+    .field-input::placeholder { color: #2e4e57; }
+    textarea.field-input {
+      resize: none;
+      height: clamp(90px,22vw,110px);
+      line-height: 1.65;
+    }
+    .submit-btn {
+      width: 100%;
+      background: #ff5b35;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: clamp(14px,4vw,16px);
+      font-family: 'Space Mono', monospace;
+      font-size: clamp(12px,3.2vw,14px);
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      margin-top: clamp(24px,7vw,32px);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .submit-btn:hover { background: #d94e2b; }
+    .submit-btn:active { transform: scale(0.98); }
+    .submit-btn:disabled { background: #2e4e57; cursor: not-allowed; }
+    .ty-screen { display: none; flex-direction: column; padding-top: 1rem; }
+    .ty-screen.visible { display: flex; }
+    .ty-emoji { font-size: clamp(52px,15vw,68px); text-align: center; margin: clamp(16px,5vw,28px) 0; line-height: 1; }
+    .ty-title { font-size: clamp(22px,6vw,28px); font-weight: 700; line-height: 1.3; text-align: center; margin-bottom: clamp(12px,3.5vw,16px); }
+    .ty-body { font-size: clamp(12px,3.2vw,14px); color: #8dadb3; line-height: 1.85; text-align: center; margin-bottom: clamp(28px,8vw,36px); }
+    .ty-body strong { color: #ddd5c8; }
+    .google-btn {
+      width: 100%;
+      background: #fff;
+      color: #1a1a1a;
+      border: none;
+      border-radius: 8px;
+      padding: clamp(14px,4vw,16px);
+      font-family: 'Space Mono', monospace;
+      font-size: clamp(11px,3vw,13px);
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: opacity 0.15s, transform 0.1s;
+      text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .google-btn:active { transform: scale(0.98); opacity: 0.9; }
+    .g-dots { display: flex; gap: 3px; }
+    .gd { width: 8px; height: 8px; border-radius: 50%; }
+    .ghost-btn {
+      width: 100%;
+      background: transparent;
+      color: #8dadb3;
+      border: 1px solid rgba(74,110,119,0.25);
+      border-radius: 8px;
+      padding: clamp(12px,3.5vw,14px);
+      font-family: 'Space Mono', monospace;
+      font-size: clamp(11px,3vw,13px);
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .ghost-btn:hover { background: rgba(74,110,119,0.1); }
+    .ty-divider { height: 1px; background: rgba(74,110,119,0.15); margin: clamp(20px,6vw,28px) 0; }
+    .contact-hint { font-size: clamp(10px,2.8vw,12px); color: #3a5a63; text-align: center; line-height: 1.9; }
+    .contact-hint a { color: #ff5b35; text-decoration: none; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div id="form-screen">
+    <div class="logo">LEAP</div>
+    <div class="tagline">Functional Fitness · Hasselt</div>
+    <div class="divider"></div>
+    <div class="title">Hoe was jouw<br>training?</div>
+    <div class="subtitle">Geef je een eerlijke rating —<br>het duurt minder dan een minuut.</div>
+    <div class="stars-wrap">
+      <div class="stars-row" id="stars">
+        <div class="star" onclick="rate(1)">★</div>
+        <div class="star" onclick="rate(2)">★</div>
+        <div class="star" onclick="rate(3)">★</div>
+        <div class="star" onclick="rate(4)">★</div>
+        <div class="star" onclick="rate(5)">★</div>
+      </div>
+      <div class="rating-hint" id="hint">Kies je rating hierboven</div>
+    </div>
+    <div class="fields">
+      <div class="field-group">
+        <label class="field-label">Jouw naam (optioneel)</label>
+        <input class="field-input" id="naam" type="text" placeholder="bv. Sarah" autocomplete="given-name">
+      </div>
+      <div class="field-group">
+        <label class="field-label" id="comment-label">Vertel ons meer (optioneel)</label>
+        <textarea class="field-input" id="comment" placeholder="Wat vond je goed of kan beter?"></textarea>
+      </div>
+    </div>
+    <button class="submit-btn" id="submit-btn" onclick="submitReview()">Versturen</button>
+  </div>
+
+  <div class="ty-screen" id="ty-positive">
+    <div class="logo">LEAP</div>
+    <div class="tagline">Functional Fitness · Hasselt</div>
+    <div class="divider"></div>
+    <div class="ty-emoji">🙌</div>
+    <div class="ty-title" id="ty-pos-title">Bedankt!</div>
+    <div class="ty-body">
+      Geweldig dat je zo blij bent met LEAP!<br><br>
+      <strong>Help andere sporters ons te vinden</strong><br>
+      en zet je review ook op Google —<br>
+      het helpt enorm.
+    </div>
+    <a class="google-btn" id="google-link" href="https://g.page/r/CUNCPWH2vowKEBM/review" target="_blank" rel="noopener">
+      <div class="g-dots">
+        <div class="gd" style="background:#4285F4"></div>
+        <div class="gd" style="background:#EA4335"></div>
+        <div class="gd" style="background:#FBBC05"></div>
+        <div class="gd" style="background:#34A853"></div>
+      </div>
+      Review op Google plaatsen
+    </a>
+    <button class="ghost-btn" onclick="resetForm()">Nee bedankt</button>
+  </div>
+
+  <div class="ty-screen" id="ty-negative">
+    <div class="logo">LEAP</div>
+    <div class="tagline">Functional Fitness · Hasselt</div>
+    <div class="divider"></div>
+    <div class="ty-emoji">💪</div>
+    <div class="ty-title" id="ty-neg-title">Bedankt voor<br>je eerlijkheid.</div>
+    <div class="ty-body">
+      We nemen jouw feedback serieus.<br><br>
+      <strong>Ons team bekijkt dit</strong><br>
+      en werkt continu aan verbetering voor jou.
+    </div>
+    <div class="ty-divider"></div>
+    <div class="contact-hint">
+      Wil je dit persoonlijk bespreken?<br>
+      <a href="mailto:hello@leaphasselt.be">hello@leaphasselt.be</a>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL      = 'https://yunbzsboqgldhoddpfjx.supabase.co'
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1bmJ6c2JvcWdsZGhvZGRwZmp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1Mjk3NjEsImV4cCI6MjA4ODEwNTc2MX0.7YSoEUUWpKU8K2asL_KExcnfd3PpyAKlG0Oe6uE9wlU'
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+  const LABELS = {
+    1: { hint:'Dat klinkt niet goed — sorry!',        label:'Vertel ons wat er misliep',                   placeholder:'Wat ging er fout? We willen het rechtzetten.' },
+    2: { hint:'We kunnen beter, dat weten we.',        label:'Wat kan er beter bij LEAP?',                  placeholder:'Jouw eerlijke mening helpt ons groeien.' },
+    3: { hint:'Oké is niet ons doel — help ons!',     label:'Wat miste je vandaag?',                       placeholder:'Wat had je training beter gemaakt?' },
+    4: { hint:'Bijna perfect — wat ontbrak er nog?',  label:'Wat maakt het een 5 voor jou?',               placeholder:'We zijn benieuwd wat het verschil maakt voor jou.' },
+    5: { hint:'Yes! Dat is wat we willen horen.',     label:'Vertel ons waarom je ons 5 sterren geeft ;)', placeholder:'Deel je enthousiasme — we lezen alles!' },
+  }
+
+  let currentRating = 0
+
+  function rate(v) {
+    currentRating = v
+    document.querySelectorAll('#stars .star').forEach((s,i) => s.classList.toggle('lit', i < v))
+    const d = LABELS[v]
+    const hint = document.getElementById('hint')
+    hint.style.opacity = '0'
+    setTimeout(() => { hint.textContent = d.hint; hint.style.opacity = '1' }, 180)
+    const lbl = document.getElementById('comment-label')
+    lbl.textContent = d.label
+    lbl.classList.add('active')
+    setTimeout(() => lbl.classList.remove('active'), 800)
+    document.getElementById('comment').placeholder = d.placeholder
+  }
+
+  async function submitReview() {
+    if (!currentRating) {
+      document.querySelectorAll('#stars .star').forEach(s => {
+        s.style.color = 'rgba(255,91,53,0.35)'
+        setTimeout(() => s.style.color = '', 600)
+      })
+      return
+    }
+    const btn = document.getElementById('submit-btn')
+    btn.disabled = true
+    btn.textContent = 'Bezig...'
+    const naam    = document.getElementById('naam').value.trim()
+    const comment = document.getElementById('comment').value.trim()
+    try {
+      await db.from('reviews').insert({
+        sterren:  currentRating,
+        naam:     naam || null,
+        comment:  comment || null,
+      })
+    } catch(e) {
+      console.warn('Supabase insert failed', e)
+    }
+    document.getElementById('form-screen').style.display = 'none'
+    if (currentRating === 5) {
+      if (naam) document.getElementById('ty-pos-title').textContent = `Super ${naam},\nbedankt!`
+      document.getElementById('ty-positive').classList.add('visible')
+    } else {
+      if (naam) document.getElementById('ty-neg-title').innerHTML = `Bedankt voor<br>je eerlijkheid, ${naam}.`
+      document.getElementById('ty-negative').classList.add('visible')
+    }
+  }
+
+  function resetForm() {
+    document.getElementById('ty-positive').classList.remove('visible')
+    document.getElementById('ty-negative').classList.remove('visible')
+    document.getElementById('form-screen').style.display = 'block'
+    currentRating = 0
+    document.querySelectorAll('#stars .star').forEach(s => s.classList.remove('lit'))
+    document.getElementById('naam').value = ''
+    document.getElementById('comment').value = ''
+    document.getElementById('hint').textContent = 'Kies je rating hierboven'
+    document.getElementById('comment-label').textContent = 'Vertel ons meer (optioneel)'
+    document.getElementById('comment').placeholder = 'Wat vond je goed of kan beter?'
+    const btn = document.getElementById('submit-btn')
+    btn.disabled = false
+    btn.textContent = 'Versturen'
+  }
+</script>
+</body>
+</html>
