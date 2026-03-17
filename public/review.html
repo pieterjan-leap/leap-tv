@@ -182,55 +182,14 @@
     <button class="submit-btn" id="submit-btn" onclick="submitReview()">Versturen</button>
   </div>
 
-  <div class="ty-screen" id="ty-positive">
+  <div class="ty-screen" id="ty-screen">
     <div class="logo">LEAP</div>
     <div class="tagline">Functional Fitness · Hasselt</div>
     <div class="divider"></div>
-    <div class="ty-emoji">🙌</div>
-    <div class="ty-title" id="ty-pos-title">Bedankt!</div>
-    <div class="ty-body">
-      Geweldig dat je zo blij bent met LEAP!<br><br>
-      <strong>Help andere sporters ons te vinden</strong><br>
-      en zet je review ook op Google —<br>
-      het helpt enorm.
-    </div>
-    <a class="google-btn" id="google-link" href="https://g.page/r/CUNCPWH2vowKEBM/review" target="_blank" rel="noopener">
-      <div class="g-dots">
-        <div class="gd" style="background:#4285F4"></div>
-        <div class="gd" style="background:#EA4335"></div>
-        <div class="gd" style="background:#FBBC05"></div>
-        <div class="gd" style="background:#34A853"></div>
-      </div>
-      Review op Google plaatsen
-    </a>
-    <button class="ghost-btn" onclick="resetForm()">Nee bedankt</button>
-  </div>
-
-  <div class="ty-screen" id="ty-negative">
-    <div class="logo">LEAP</div>
-    <div class="tagline">Functional Fitness · Hasselt</div>
-    <div class="divider"></div>
-    <div class="ty-emoji">💪</div>
-    <div class="ty-title" id="ty-neg-title">Bedankt voor<br>je eerlijkheid.</div>
-    <div class="ty-body">
-      We nemen jouw feedback serieus.<br><br>
-      <strong>Ons team bekijkt dit</strong><br>
-      en werkt continu aan verbetering voor jou.
-    </div>
-    <a class="google-btn" href="https://g.page/r/CUNCPWH2vowKEBM/review" target="_blank" rel="noopener" style="margin-top:clamp(16px,4vw,24px)">
-      <div class="g-dots">
-        <div class="gd" style="background:#4285F4"></div>
-        <div class="gd" style="background:#EA4335"></div>
-        <div class="gd" style="background:#FBBC05"></div>
-        <div class="gd" style="background:#34A853"></div>
-      </div>
-      Ook op Google plaatsen
-    </a>
-    <div class="ty-divider"></div>
-    <div class="contact-hint">
-      Wil je dit persoonlijk bespreken?<br>
-      <a href="mailto:hello@leaphasselt.be">hello@leaphasselt.be</a>
-    </div>
+    <div class="ty-emoji" id="ty-emoji"></div>
+    <div class="ty-title" id="ty-title"></div>
+    <div class="ty-body" id="ty-body"></div>
+    <div id="ty-actions"></div>
   </div>
 
 </div>
@@ -288,18 +247,46 @@
       console.warn('Supabase insert failed', e)
     }
     document.getElementById('form-screen').style.display = 'none'
-    if (currentRating === 5) {
-      if (naam) document.getElementById('ty-pos-title').textContent = `Super ${naam},\nbedankt!`
-      document.getElementById('ty-positive').classList.add('visible')
-    } else {
-      if (naam) document.getElementById('ty-neg-title').innerHTML = `Bedankt voor<br>je eerlijkheid, ${naam}.`
-      document.getElementById('ty-negative').classList.add('visible')
-    }
+    showThankYou(currentRating, naam)
+  }
+
+  const GOOGLE_URL = 'https://g.page/r/CUNCPWH2vowKEBM/review'
+
+  const googleBtn = `<a class="google-btn" href="${GOOGLE_URL}" target="_blank" rel="noopener">
+    <div class="g-dots">
+      <div class="gd" style="background:#4285F4"></div>
+      <div class="gd" style="background:#EA4335"></div>
+      <div class="gd" style="background:#FBBC05"></div>
+      <div class="gd" style="background:#34A853"></div>
+    </div>
+    Deel je ervaring op Google
+  </a>`
+
+  const feedbackBtn = `<a class="ghost-btn" href="mailto:hello@leaphasselt.be" style="display:block;text-align:center;text-decoration:none">
+    Laat het ons persoonlijk weten
+  </a>`
+
+  function showThankYou(rating, naam) {
+    const isHappy = rating >= 4
+
+    document.getElementById('ty-emoji').textContent = isHappy ? '\u{1F64C}' : '\u{1F4AA}'
+    document.getElementById('ty-title').innerHTML = isHappy
+      ? (naam ? `Super ${naam}, bedankt!` : 'Bedankt!')
+      : (naam ? `Bedankt ${naam},<br>dit helpt ons enorm.` : 'Bedankt,<br>dit helpt ons enorm.')
+    document.getElementById('ty-body').innerHTML = isHappy
+      ? 'Blij om te horen!<br><strong>Help andere sporters ons te vinden</strong><br>en deel je ervaring ook op Google.'
+      : 'We nemen jouw feedback serieus.<br><strong>Wil je dat we persoonlijk contact opnemen?</strong><br>Stuur ons een berichtje — we luisteren.'
+
+    // Beide knoppen altijd zichtbaar, volgorde past zich aan
+    document.getElementById('ty-actions').innerHTML = isHappy
+      ? googleBtn + feedbackBtn
+      : feedbackBtn + '<div style="margin-top:6px"></div>' + googleBtn
+
+    document.getElementById('ty-screen').classList.add('visible')
   }
 
   function resetForm() {
-    document.getElementById('ty-positive').classList.remove('visible')
-    document.getElementById('ty-negative').classList.remove('visible')
+    document.getElementById('ty-screen').classList.remove('visible')
     document.getElementById('form-screen').style.display = 'block'
     currentRating = 0
     document.querySelectorAll('#stars .star').forEach(s => s.classList.remove('lit'))
