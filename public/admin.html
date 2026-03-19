@@ -272,18 +272,19 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   // ── Config ───────────────────────────────────────────────────
-  const SUPABASE_URL         = 'https://yunbzsboqgldhoddpfjx.supabase.co';
-  const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1bmJ6c2JvcWdsZGhvZGRwZmp4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjUyOTc2MSwiZXhwIjoyMDg4MTA1NzYxfQ.W0KMNmt8f_5CLXAUKK23VpROVH9wryyS0FDZrFiUhbo';
-  const STORAGE_BUCKET       = 'tv-fotos';
+  const SUPABASE_URL  = 'https://yunbzsboqgldhoddpfjx.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1bmJ6c2JvcWdsZGhvZGRwZmp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1Mjk3NjEsImV4cCI6MjA4ODEwNTc2MX0.7YSoEUUWpKU8K2asL_KExcnfd3PpyAKlG0Oe6uE9wlU';
+  const STORAGE_BUCKET = 'tv-fotos';
   // ─────────────────────────────────────────────────────────────
 
-  // Auth check
-  if (prompt('Wachtwoord:') !== 'leap2024') {
+  // Auth check + Supabase login
+  const pw = prompt('Wachtwoord:');
+  if (pw !== 'leap2025') {
     document.body.innerHTML = '<div style="text-align:center;padding:80px;color:#c83232">Verkeerd wachtwoord.</div>';
     throw new Error('unauthorized');
   }
 
-  const db = supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
   // ── Tabs ─────────────────────────────────────────────────────
   document.querySelectorAll('.tab').forEach(t => {
@@ -556,12 +557,14 @@
     loadInstellingen();
   }
 
-  // ── Init ─────────────────────────────────────────────────────
-  loadSlides();
-  loadFacts();
-  loadEvents();
-  loadNieuws();
-  loadInstellingen();
+  // ── Init (wacht op auth) ─────────────────────────────────────
+  db.auth.signInWithPassword({ email: 'dashboard@leaphasselt.be', password: pw }).then(() => {
+    loadSlides();
+    loadFacts();
+    loadEvents();
+    loadNieuws();
+    loadInstellingen();
+  });
 </script>
 </body>
 </html>

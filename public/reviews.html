@@ -360,16 +360,17 @@
     const el = document.getElementById('reviews-list')
     if (!filtered.length) { el.innerHTML = '<div class="empty">Geen reviews gevonden.</div>'; return }
 
+    function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
     el.innerHTML = filtered.map(r => `
       <div class="review-row">
         <div class="review-stars">${starsHtml(r.sterren)}</div>
         <div class="review-body">
           <div class="review-name">
-            ${r.naam || 'Anoniem'}
+            ${esc(r.naam || 'Anoniem')}
             <span class="badge ${r.sterren===5?'badge-5':'badge-low'}">${r.sterren} ★</span>
             ${r.sterren===5 ? '<span class="badge badge-google">Google</span>' : ''}
           </div>
-          ${r.comment ? `<div class="review-comment">"${r.comment}"</div>` : ''}
+          ${r.comment ? `<div class="review-comment">"${esc(r.comment)}"</div>` : ''}
           <div class="review-meta">${fmtDate(r.created_at)}</div>
         </div>
       </div>`).join('')
